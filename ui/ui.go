@@ -2,7 +2,6 @@ package ui
 
 import (
 	"github.com/CyrusRoshan/pickture/utils"
-	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 )
@@ -12,39 +11,35 @@ const (
 	MaxFPS = 30
 )
 
-var (
-	window *pixelgl.Window
-)
-
 func Render() {
 	window, err := BuildWindow(Title)
 	utils.PanicIfErr(err)
 
 	// Initial setup
-	Setup()
+	Setup(window)
 
 	// While running...
 	for !window.Closed() {
 		LimitFPS(30, func() {
 			ShowFPSInTitle(Title, window)
-			Changes()
+			Changes(window)
 			window.Update()
 		})
 	}
 
 	// Clean up before exiting
-	CleanUp()
+	CleanUp(window)
 }
 
-func Setup() {
+func Setup(window *pixelgl.Window) {
 	window.Clear(colornames.Skyblue)
-	QButton.Draw(window, pixel.IM.Scaled(pixel.V(0, 0), 2).Moved(window.Bounds().Center()))
+	DrawButtons(window)
 }
 
-func Changes() {
+func Changes(window *pixelgl.Window) {
 
 }
 
-func CleanUp() {
+func CleanUp(window *pixelgl.Window) {
 
 }

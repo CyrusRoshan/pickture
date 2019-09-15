@@ -45,7 +45,6 @@ func BuildWindow(title string) (*pixelgl.Window, error) {
 		Resizable: true,
 	}
 
-	var err error
-	window, err = pixelgl.NewWindow(cfg)
+	window, err := pixelgl.NewWindow(cfg)
 	return window, err
 }

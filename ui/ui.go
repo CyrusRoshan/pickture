@@ -3,7 +3,6 @@ package ui
 import (
 	"github.com/CyrusRoshan/pickture/utils"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 )
 
 const (
@@ -32,12 +31,12 @@ func Render() {
 }
 
 func Setup(window *pixelgl.Window) {
-	window.Clear(colornames.Skyblue)
-	DrawButtons(window)
+	getNewInfo()
+	SetBindings()
 }
 
 func Changes(window *pixelgl.Window) {
-
+	RenderCurrentState(window)
 }
 
 func CleanUp(window *pixelgl.Window) {

@@ -22,7 +22,7 @@ func AddKeyPressFunctions(options KeyPressOptions) {
 }
 
 // Used to not fire multiple times in one go
-var hasFired map[string]bool
+var hasFired = map[string]bool{}
 
 func CalculateKeyPressChanges(win *pixelgl.Window) {
 	var (
@@ -35,7 +35,9 @@ func CalculateKeyPressChanges(win *pixelgl.Window) {
 			win.Pressed(pixelgl.KeyRightSuper) ||
 			win.Pressed(pixelgl.KeyLeftControl) ||
 			win.Pressed(pixelgl.KeyRightControl)) {
-		optionHolder.Undo()
+		if optionHolder.Undo != nil {
+			optionHolder.Undo()
+		}
 		return
 	}
 
@@ -45,32 +47,52 @@ func CalculateKeyPressChanges(win *pixelgl.Window) {
 	}
 
 	if win.Pressed(pixelgl.KeyQ) && !hasFired["Q"] {
-		optionHolder.Q()
+		if optionHolder.Q != nil {
+			optionHolder.Q()
+		}
+		anyKeyPressed = true
 		hasFired["Q"] = true
 	}
 	if win.Pressed(pixelgl.KeyW) && !hasFired["W"] {
-		optionHolder.W()
+		if optionHolder.W != nil {
+			optionHolder.W()
+		}
+		anyKeyPressed = true
 		hasFired["W"] = true
 	}
 	if win.Pressed(pixelgl.KeyE) && !hasFired["E"] {
-		optionHolder.E()
+		if optionHolder.E != nil {
+			optionHolder.E()
+		}
+		anyKeyPressed = true
 		hasFired["E"] = true
 	}
 	if win.Pressed(pixelgl.KeyA) && !hasFired["A"] {
-		optionHolder.A()
+		if optionHolder.A != nil {
+			optionHolder.A()
+		}
+		anyKeyPressed = true
 		hasFired["A"] = true
 	}
 	if win.Pressed(pixelgl.KeyS) && !hasFired["S"] {
-		optionHolder.S()
+		if optionHolder.S != nil {
+			optionHolder.S()
+		}
+		anyKeyPressed = true
 		hasFired["S"] = true
 	}
 	if win.Pressed(pixelgl.KeyD) && !hasFired["D"] {
-		optionHolder.D()
+		if optionHolder.D != nil {
+			optionHolder.D()
+		}
+		anyKeyPressed = true
 		hasFired["D"] = true
 	}
 
 	if !multiKeySelect && anyKeyPressed {
-		optionHolder.Next()
+		if optionHolder.Next != nil {
+			optionHolder.Next()
+		}
 		hasFired = map[string]bool{}
 	}
 }

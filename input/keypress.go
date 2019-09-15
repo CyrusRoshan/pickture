@@ -30,10 +30,11 @@ func CalculateKeyPressChanges(win *pixelgl.Window) {
 		anyKeyPressed  = false
 	)
 
-	if win.Pressed(pixelgl.KeyLeftSuper) ||
-		win.Pressed(pixelgl.KeyRightSuper) ||
-		win.Pressed(pixelgl.KeyLeftControl) ||
-		win.Pressed(pixelgl.KeyRightControl) {
+	if win.Pressed(pixelgl.KeyZ) &&
+		(win.Pressed(pixelgl.KeyLeftSuper) ||
+			win.Pressed(pixelgl.KeyRightSuper) ||
+			win.Pressed(pixelgl.KeyLeftControl) ||
+			win.Pressed(pixelgl.KeyRightControl)) {
 		optionHolder.Undo()
 		return
 	}

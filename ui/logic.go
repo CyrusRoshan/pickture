@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"golang.org/x/image/colornames"
 
 	"github.com/faiface/pixel/pixelgl"
@@ -10,6 +8,12 @@ import (
 	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/input"
 	"github.com/CyrusRoshan/pickture/utils"
+)
+
+const (
+	inputPath   = "./ignore/testinput"
+	aOutputPath = "./ignore/testoutput/a"
+	dOutputPath = "./ignore/testoutput/d"
 )
 
 var stateInfo = struct {
@@ -33,23 +37,58 @@ func RenderCurrentState(win *pixelgl.Window) {
 func SetBindings() {
 	input.AddKeyPressFunctions(input.KeyPressOptions{
 		Next: getNewInfo,
-		A:    A,
-		D:    D,
+		A:    MoveFile(inputPath, aOutputPath),
+		D:    MoveFile(inputPath, dOutputPath),
 	})
 }
 
 func getNewInfo() {
 	// Get all files
-	fmt.Println("GET NEW INFO")
-	allFiles, err := files.ListFiles()
+	allFiles, err := files.ListFiles(inputPath)
 	utils.PanicIfErr(err)
 	stateInfo.files = allFiles
 }
 
-func A() {
+type Action string
 
+const Move = Action("mv")
+const Copy = Action("cp")
+const Delete = Action("rm")
+
+type Change struct {
+	Action Action
+	Arg1   string
+	Arg2   string
 }
 
-func D() {
+func ReverseChange(c Change) Change {
+	var reverse Change
+	switch c.Action {
+	case Move:
+		reverse.Action = Move
+		reverse.Arg1 = c.Arg2
+		reverse.Arg2 = c.Arg1
+	case Copy:
+		reverse.Action = Delete
+		reverse.Arg1 = c.Arg2
+	}
+	return reverse
+}
 
+var changes = []Change{}
+
+func ExecuteChange(c Change) {
+	// Add change execution stuff here
+}
+
+func MoveFile(originalPath string, newPath string) func() {
+	return func() {
+		c := Change{
+			Action: Move,
+			Arg1:   originalPath,
+			Arg2:   newPath,
+		}
+		changes = append(changes, c)
+		ExecuteChange(c)
+	}
 }

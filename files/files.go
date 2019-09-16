@@ -1,23 +1,19 @@
 package files
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
-
-const inputFolder = "./ignore/testinput"
-const outputFolder = "./ignore/testoutput"
 
 type File struct {
 	Info os.FileInfo
 	Path string
 }
 
-func ListFiles() ([]File, error) {
+func ListFiles(folderPath string) ([]File, error) {
 	files := []File{}
-	err := filepath.Walk(inputFolder, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -34,7 +30,6 @@ func ListFiles() ([]File, error) {
 			Info: info,
 			Path: path,
 		})
-		fmt.Printf("visited file or dir: %q\n", path)
 		return nil
 	})
 	return files, err

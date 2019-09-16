@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/CyrusRoshan/pickture/files"
@@ -16,7 +15,6 @@ func imageScalingRatio(winBounds pixel.Rect, imageBounds pixel.Rect) float64 {
 
 	smallestRatio := math.Min(wRatio, hRatio)
 	return smallestRatio
-
 }
 
 var imageCache = map[string]*pixel.Sprite{}
@@ -24,7 +22,6 @@ var imageCache = map[string]*pixel.Sprite{}
 func DrawBackgroundImage(win *pixelgl.Window, image files.File) {
 	imageSprite, ok := imageCache[image.Path]
 	if !ok {
-		fmt.Println("FETCHING IMG")
 		var err error
 		imageSprite, err = SpriteFromFile(image.Path)
 		utils.PanicIfErr(err)

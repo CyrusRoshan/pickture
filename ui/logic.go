@@ -25,6 +25,7 @@ func RenderCurrentState(win *pixelgl.Window) {
 
 	// Draw current state
 	win.Clear(colornames.Black)
+	DrawBackgroundImage(win, stateInfo.files[0])
 	DrawButtons(win)
 	DrawImageCount(win, len(stateInfo.files))
 }

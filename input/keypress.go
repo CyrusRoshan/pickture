@@ -27,7 +27,7 @@ type keyButtonEventCombo struct {
 	Event  InputEvent
 }
 
-var keyCombos = []keyButtonEventCombo{
+var letterKeyCombos = []keyButtonEventCombo{
 	keyButtonEventCombo{
 		Button: pixelgl.KeyQ,
 		Name:   "Q",
@@ -62,7 +62,7 @@ var keyCombos = []keyButtonEventCombo{
 
 // Used to not fire multiple times in one go
 var keyHasFired = map[string]bool{}
-var keyTypeLastCycle = map[string]bool{}
+var undoHasFired = false
 
 func CalculateKeyPressChanges(win *pixelgl.Window) {
 	var keyWasPressedThisCycle = false
@@ -73,8 +73,13 @@ func CalculateKeyPressChanges(win *pixelgl.Window) {
 			win.Pressed(pixelgl.KeyRightSuper) ||
 			win.Pressed(pixelgl.KeyLeftControl) ||
 			win.Pressed(pixelgl.KeyRightControl)) {
-		eventChannel <- UndoEvent
-		return // No next event!
+		if !undoHasFired {
+			eventChannel <- UndoEvent
+			undoHasFired = true
+			return // No next event!
+		}
+	} else { // Reset undo upon key release
+		undoHasFired = false
 	}
 
 	// Multikey select
@@ -83,7 +88,7 @@ func CalculateKeyPressChanges(win *pixelgl.Window) {
 	}
 
 	// Individual keys
-	for _, combo := range keyCombos {
+	for _, combo := range letterKeyCombos {
 		if win.Pressed(combo.Button) {
 			keyWasPressedThisCycle = true
 

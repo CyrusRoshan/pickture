@@ -4,95 +4,103 @@ import (
 	"github.com/faiface/pixel/pixelgl"
 )
 
-var optionHolder KeyPressOptions
+type InputEvent string
 
-type KeyPressOptions struct {
-	Next func()
-	Undo func()
-	Q    func()
-	W    func()
-	E    func()
-	A    func()
-	S    func()
-	D    func()
+const UndoEvent = InputEvent("undo")
+const NextEvent = InputEvent("next")
+const QPressEvent = InputEvent("press_q")
+const WPressEvent = InputEvent("press_w")
+const EPressEvent = InputEvent("press_e")
+const APressEvent = InputEvent("press_a")
+const SPressEvent = InputEvent("press_s")
+const DPressEvent = InputEvent("press_d")
+
+var eventChannel = make(chan InputEvent, 3)
+
+func GetKeyPressEvents() chan InputEvent {
+	return eventChannel
 }
 
-func AddKeyPressFunctions(options KeyPressOptions) {
-	optionHolder = options
+type keyButtonEventCombo struct {
+	Button pixelgl.Button
+	Name   string
+	Event  InputEvent
+}
+
+var keyCombos = []keyButtonEventCombo{
+	keyButtonEventCombo{
+		Button: pixelgl.KeyQ,
+		Name:   "Q",
+		Event:  QPressEvent,
+	},
+	keyButtonEventCombo{
+		Button: pixelgl.KeyW,
+		Name:   "W",
+		Event:  WPressEvent,
+	},
+	keyButtonEventCombo{
+		Button: pixelgl.KeyE,
+		Name:   "E",
+		Event:  EPressEvent,
+	},
+	keyButtonEventCombo{
+		Button: pixelgl.KeyA,
+		Name:   "A",
+		Event:  APressEvent,
+	},
+	keyButtonEventCombo{
+		Button: pixelgl.KeyS,
+		Name:   "S",
+		Event:  SPressEvent,
+	},
+	keyButtonEventCombo{
+		Button: pixelgl.KeyD,
+		Name:   "D",
+		Event:  DPressEvent,
+	},
 }
 
 // Used to not fire multiple times in one go
-var hasFired = map[string]bool{}
+var keyHasFired = map[string]bool{}
+var keyTypeLastCycle = map[string]bool{}
 
 func CalculateKeyPressChanges(win *pixelgl.Window) {
-	var (
-		multiKeySelect = false
-		anyKeyPressed  = false
-	)
+	var keyWasPressedThisCycle = false
 
+	// Undo event
 	if win.Pressed(pixelgl.KeyZ) &&
 		(win.Pressed(pixelgl.KeyLeftSuper) ||
 			win.Pressed(pixelgl.KeyRightSuper) ||
 			win.Pressed(pixelgl.KeyLeftControl) ||
 			win.Pressed(pixelgl.KeyRightControl)) {
-		if optionHolder.Undo != nil {
-			optionHolder.Undo()
-		}
-		return
+		eventChannel <- UndoEvent
+		return // No next event!
 	}
 
-	if win.Pressed(pixelgl.KeyLeftShift) ||
-		win.Pressed(pixelgl.KeyRightShift) {
-		multiKeySelect = true
+	// Multikey select
+	if win.Pressed(pixelgl.KeyLeftShift) || win.Pressed(pixelgl.KeyRightShift) {
+		keyWasPressedThisCycle = true
 	}
 
-	if win.Pressed(pixelgl.KeyQ) && !hasFired["Q"] {
-		if optionHolder.Q != nil {
-			optionHolder.Q()
+	// Individual keys
+	for _, combo := range keyCombos {
+		if win.Pressed(combo.Button) {
+			keyWasPressedThisCycle = true
+
+			if !keyHasFired[combo.Name] {
+				eventChannel <- combo.Event
+				keyHasFired[combo.Name] = true
+			}
 		}
-		anyKeyPressed = true
-		hasFired["Q"] = true
-	}
-	if win.Pressed(pixelgl.KeyW) && !hasFired["W"] {
-		if optionHolder.W != nil {
-			optionHolder.W()
-		}
-		anyKeyPressed = true
-		hasFired["W"] = true
-	}
-	if win.Pressed(pixelgl.KeyE) && !hasFired["E"] {
-		if optionHolder.E != nil {
-			optionHolder.E()
-		}
-		anyKeyPressed = true
-		hasFired["E"] = true
-	}
-	if win.Pressed(pixelgl.KeyA) && !hasFired["A"] {
-		if optionHolder.A != nil {
-			optionHolder.A()
-		}
-		anyKeyPressed = true
-		hasFired["A"] = true
-	}
-	if win.Pressed(pixelgl.KeyS) && !hasFired["S"] {
-		if optionHolder.S != nil {
-			optionHolder.S()
-		}
-		anyKeyPressed = true
-		hasFired["S"] = true
-	}
-	if win.Pressed(pixelgl.KeyD) && !hasFired["D"] {
-		if optionHolder.D != nil {
-			optionHolder.D()
-		}
-		anyKeyPressed = true
-		hasFired["D"] = true
 	}
 
-	if !multiKeySelect && anyKeyPressed {
-		if optionHolder.Next != nil {
-			optionHolder.Next()
-		}
-		hasFired = map[string]bool{}
+	// Calculate variables
+	allKeysReleased := !keyWasPressedThisCycle
+	selectionHasBeenMade := len(keyHasFired) > 0
+
+	// Firing next event
+	if allKeysReleased && selectionHasBeenMade {
+		eventChannel <- NextEvent
+		keyHasFired = map[string]bool{}
 	}
 }

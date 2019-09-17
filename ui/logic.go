@@ -38,6 +38,7 @@ func RenderCurrentState(win *pixelgl.Window) {
 
 func SetBindings() {
 	eventChannel := input.GetKeyPressEvents()
+
 	go func() {
 		for {
 			inputEvent := <-eventChannel
@@ -47,10 +48,8 @@ func SetBindings() {
 				getNewInfo()
 			case input.APressEvent:
 				fmt.Println("A pressed!")
-				MoveFile(inputPath, aOutputPath)
 			case input.DPressEvent:
 				fmt.Println("D pressed!")
-				MoveFile(inputPath, dOutputPath)
 			default:
 				fmt.Printf("Unhandled event: %s", inputEvent)
 			}
@@ -63,48 +62,4 @@ func getNewInfo() {
 	allFiles, err := files.ListFiles(inputPath)
 	utils.PanicIfErr(err)
 	stateInfo.files = allFiles
-}
-
-type FileAction string
-
-const Move = FileAction("mv")
-const Copy = FileAction("cp")
-const Delete = FileAction("rm")
-
-type Change struct {
-	FileAction FileAction
-	Arg1       string
-	Arg2       string
-}
-
-func ReverseChange(c Change) Change {
-	var reverse Change
-	switch c.FileAction {
-	case Move:
-		reverse.FileAction = Move
-		reverse.Arg1 = c.Arg2
-		reverse.Arg2 = c.Arg1
-	case Copy:
-		reverse.FileAction = Delete
-		reverse.Arg1 = c.Arg2
-	}
-	return reverse
-}
-
-var changes = []Change{}
-
-func ExecuteChange(c Change) {
-	// Add change execution stuff here
-}
-
-func MoveFile(originalPath string, newPath string) func() {
-	return func() {
-		c := Change{
-			FileAction: Move,
-			Arg1:       originalPath,
-			Arg2:       newPath,
-		}
-		changes = append(changes, c)
-		ExecuteChange(c)
-	}
 }

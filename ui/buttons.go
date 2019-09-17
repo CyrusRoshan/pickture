@@ -1,11 +1,10 @@
 package ui
 
 import (
-	"path/filepath"
-
 	"github.com/CyrusRoshan/pickture/utils"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/gobuffalo/packr"
 )
 
 var (
@@ -18,11 +17,10 @@ var (
 )
 
 func init() {
+	packBox := packr.NewBox("../assets") // Helps bundle files to binary
 	var getButtonFromAssets = func(filename string) *pixel.Sprite {
-		absFilePath, err := filepath.Abs("./assets/" + filename + "_button.png")
-		utils.PanicIfErr(err)
-
-		sprite, err := SpriteFromFile(absFilePath)
+		fullFilename := filename + "_button.png"
+		sprite, err := SpriteFromFile(fullFilename, &packBox)
 		utils.PanicIfErr(err)
 		return sprite
 	}

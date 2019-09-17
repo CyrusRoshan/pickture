@@ -23,7 +23,7 @@ func DrawBackgroundImage(win *pixelgl.Window, image files.File) {
 	imageSprite, ok := imageCache[image.Path]
 	if !ok {
 		var err error
-		imageSprite, err = SpriteFromFile(image.Path)
+		imageSprite, err = SpriteFromFile(image.Path, nil)
 		utils.PanicIfErr(err)
 
 		imageCache[image.Path] = imageSprite

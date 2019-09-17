@@ -7,14 +7,14 @@ import (
 	"github.com/CyrusRoshan/pickture/input"
 )
 
-const (
-	inputPath   = "./ignore/testinput"
-	aOutputPath = "./ignore/testoutput/a"
-	dOutputPath = "./ignore/testoutput/d"
-)
+type InitProperties struct {
+	InputPath   string
+	AOutputPath string
+	DOutputPath string
+}
 
-func Init() {
-	getNewState() // Update state when starting
+func Init(props InitProperties) {
+	getNewState(props.InputPath) // Update state when starting
 
 	eventChannel := input.GetKeyPressEvents()
 
@@ -54,7 +54,7 @@ func Init() {
 				currentChange = files.Change{}
 
 				// Update the state
-				getNewState()
+				getNewState(props.InputPath)
 			case input.UndoEvent:
 				fmt.Println("UNDO EVENT!!!")
 				// If current change isn't empty, just reset it and exit
@@ -76,15 +76,15 @@ func Init() {
 				files.ExecuteChangeCommands(cmds)
 
 				// Update the state
-				getNewState()
+				getNewState(props.InputPath)
 
 			case input.APressEvent:
 				fmt.Println("A pressed!")
-				addPathToCopyTo(aOutputPath)
+				addPathToCopyTo(props.AOutputPath)
 
 			case input.DPressEvent:
 				fmt.Println("D pressed!")
-				addPathToCopyTo(dOutputPath)
+				addPathToCopyTo(props.DOutputPath)
 
 			default:
 				fmt.Printf("Unhandled event: %s", inputEvent)

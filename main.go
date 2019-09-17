@@ -5,6 +5,7 @@ import (
 	"github.com/CyrusRoshan/pickture/logic"
 	"github.com/CyrusRoshan/pickture/ui"
 	"github.com/CyrusRoshan/pickture/utils"
+	"github.com/alexflint/go-arg"
 	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 )
@@ -39,7 +40,20 @@ func Render() {
 }
 
 func Setup(win *pixelgl.Window) {
-	logic.Init()
+	var args = struct {
+		Input  string `arg:"positional" help:"test"`
+		Output string `arg:"positional" help:"test"`
+	}{
+		Input:  "./input",
+		Output: "./output",
+	}
+	arg.MustParse(&args)
+
+	logic.Init(logic.InitProperties{
+		InputPath:   args.Input,
+		AOutputPath: args.Output + "/a",
+		DOutputPath: args.Output + "/d",
+	})
 }
 
 func RenderChanges(win *pixelgl.Window) {

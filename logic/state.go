@@ -20,7 +20,7 @@ func GetImageCount() int {
 	return len(stateInfo.files)
 }
 
-func getNewState() {
+func getNewState(inputPath string) {
 	// Get all files
 	allFiles, err := files.ListFiles(inputPath)
 	utils.PanicIfErr(err)

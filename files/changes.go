@@ -2,6 +2,7 @@ package files
 
 import (
 	"os"
+	"path"
 
 	"github.com/CyrusRoshan/pickture/utils"
 )
@@ -65,12 +66,25 @@ func GetReverseChangeCommands(c Change) []ChangeCommand {
 var changes = []Change{}
 
 func ExecuteChangeCommands(ccs []ChangeCommand) {
+	createParentFolder := func(filePath string) {
+		// Get parent folder
+		dir := path.Dir(filePath)
+
+		// Create only if it doesn't exist
+		_, err := os.Stat(dir)
+		if os.IsNotExist(err) {
+			os.MkdirAll(dir, os.ModePerm)
+		}
+	}
+
 	for _, change := range ccs {
 		switch change.Action {
 		case move:
+			createParentFolder(change.Path2)
 			err := os.Rename(change.Path1, change.Path2)
 			utils.PanicIfErr(err)
 		case copy:
+			createParentFolder(change.Path2)
 			err := os.Link(change.Path1, change.Path2)
 			utils.PanicIfErr(err)
 		case delete:

@@ -92,6 +92,9 @@ func SetBindings() {
 				cmds := files.GetReverseChangeCommands(changeToUndo)
 				files.ExecuteChangeCommands(cmds)
 
+				// Update the new info
+				getNewInfo()
+
 			case input.APressEvent:
 				fmt.Println("A pressed!")
 				addPathToCopyTo(aOutputPath)

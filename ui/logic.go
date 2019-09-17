@@ -48,8 +48,9 @@ func SetBindings() {
 
 	// The current change
 	currentChange := files.Change{}
-	addPathToCopyTo := func(path string) {
-		currentChange.NewPaths = append(currentChange.NewPaths, path)
+	addPathToCopyTo := func(pathPrefix string) {
+		fullPath := pathPrefix + "/" + currentFile().Info.Name()
+		currentChange.NewPaths = append(currentChange.NewPaths, fullPath)
 	}
 
 	go func() {

@@ -1,15 +1,10 @@
-package ui
+package logic
 
 import (
 	"fmt"
 
-	"golang.org/x/image/colornames"
-
-	"github.com/faiface/pixel/pixelgl"
-
 	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/input"
-	"github.com/CyrusRoshan/pickture/utils"
 )
 
 const (
@@ -18,36 +13,9 @@ const (
 	dOutputPath = "./ignore/testoutput/d"
 )
 
-var stateInfo = struct {
-	files []files.File
-}{}
+func Init() {
+	getNewState() // Update state when starting
 
-func currentFile() *files.File {
-	if len(stateInfo.files) == 0 {
-		return nil
-	}
-	return &stateInfo.files[0]
-}
-
-func RenderCurrentState(win *pixelgl.Window) {
-	// Get changes to previous state
-	input.CalculateKeyPressChanges(win)
-
-	// Apply changes to previous state
-	// (none yet)
-
-	// Draw current state
-	win.Clear(colornames.Black)
-	// Don't draw background if there is no image
-	currFile := currentFile()
-	if currFile != nil {
-		DrawBackgroundImage(win, *currFile)
-	}
-	DrawButtons(win)
-	DrawImageCount(win, len(stateInfo.files))
-}
-
-func SetBindings() {
 	eventChannel := input.GetKeyPressEvents()
 
 	// All changes that have happened
@@ -56,7 +24,7 @@ func SetBindings() {
 	// The current change
 	currentChange := files.Change{}
 	addPathToCopyTo := func(pathPrefix string) {
-		fullPath := pathPrefix + "/" + currentFile().Info.Name()
+		fullPath := pathPrefix + "/" + CurrentFile().Info.Name()
 		currentChange.NewPaths = append(currentChange.NewPaths, fullPath)
 	}
 
@@ -66,7 +34,7 @@ func SetBindings() {
 
 			if inputEvent != input.UndoEvent {
 				// Ignore keypresses if we have no files left in the folder
-				if currentFile() == nil {
+				if CurrentFile() == nil {
 					continue
 				}
 			}
@@ -75,7 +43,7 @@ func SetBindings() {
 			case input.NextEvent:
 				fmt.Println("Next event!")
 				// Set change src to current file
-				currentChange.OriginalPath = currentFile().Path
+				currentChange.OriginalPath = CurrentFile().Path
 
 				// Get execute change commands
 				cmds := files.GetChangeCommands(currentChange)
@@ -85,8 +53,8 @@ func SetBindings() {
 				previousChanges = append(previousChanges, currentChange)
 				currentChange = files.Change{}
 
-				// Update the new info
-				getNewInfo()
+				// Update the state
+				getNewState()
 			case input.UndoEvent:
 				fmt.Println("UNDO EVENT!!!")
 				// If current change isn't empty, just reset it and exit
@@ -107,8 +75,8 @@ func SetBindings() {
 				cmds := files.GetReverseChangeCommands(changeToUndo)
 				files.ExecuteChangeCommands(cmds)
 
-				// Update the new info
-				getNewInfo()
+				// Update the state
+				getNewState()
 
 			case input.APressEvent:
 				fmt.Println("A pressed!")
@@ -123,11 +91,4 @@ func SetBindings() {
 			}
 		}
 	}()
-}
-
-func getNewInfo() {
-	// Get all files
-	allFiles, err := files.ListFiles(inputPath)
-	utils.PanicIfErr(err)
-	stateInfo.files = allFiles
 }

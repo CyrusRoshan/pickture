@@ -22,8 +22,11 @@ var stateInfo = struct {
 	files []files.File
 }{}
 
-func currentFile() files.File {
-	return stateInfo.files[0]
+func currentFile() *files.File {
+	if len(stateInfo.files) == 0 {
+		return nil
+	}
+	return &stateInfo.files[0]
 }
 
 func RenderCurrentState(win *pixelgl.Window) {
@@ -35,7 +38,11 @@ func RenderCurrentState(win *pixelgl.Window) {
 
 	// Draw current state
 	win.Clear(colornames.Black)
-	DrawBackgroundImage(win, currentFile())
+	// Don't draw background if there is no image
+	currFile := currentFile()
+	if currFile != nil {
+		DrawBackgroundImage(win, *currFile)
+	}
 	DrawButtons(win)
 	DrawImageCount(win, len(stateInfo.files))
 }
@@ -56,6 +63,14 @@ func SetBindings() {
 	go func() {
 		for {
 			inputEvent := <-eventChannel
+
+			if inputEvent != input.UndoEvent {
+				// Ignore keypresses if we have no files left in the folder
+				if currentFile() == nil {
+					continue
+				}
+			}
+
 			switch inputEvent {
 			case input.NextEvent:
 				fmt.Println("Next event!")

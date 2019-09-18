@@ -19,7 +19,6 @@ Instead of:
 1. Repeat
 
 You can now:
-1. (TODO: remove filename collisions)
 1. Toss whatever jumble of folders you have together
 1. Slap open `pickture`
 1. Smash some keys to toss photos in folders ("keep," "delete," "photos with dogs in them," whatever category you want)
@@ -30,9 +29,7 @@ You can now:
 ```bash
 $ go get -u github.com/CyrusRoshan/pickture
 $ cd $GOPATH/src/github.com/CyrusRoshan/pickture/
-$ go get -u github.com/gobuffalo/packr/packr
-$ packr
-$ go install
+$ make
 ```
 
 Now you can run `pickture` anywhere!

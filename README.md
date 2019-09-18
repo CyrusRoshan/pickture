@@ -9,7 +9,7 @@ aka shots you wanna keep and shots you don't wanna keep
 
 I usually take about a billion photos on my camera, dump them to my laptop, and then never sort through which ones are good or bad.
 
-Instead of:
+### *Instead of:*
 
 1. Putting all of your photos in the same folder and making sure there are no filename collisions
 1. Opening up a photo in fullscreen
@@ -18,7 +18,7 @@ Instead of:
 1. Closing the photo browsing window
 1. Repeat
 
-You can now:
+### You can now:
 1. Toss whatever jumble of folders you have together
 1. Slap open `pickture`
 1. Smash some keys to toss photos in folders ("keep," "delete," "photos with dogs in them," whatever category you want)
@@ -27,9 +27,9 @@ You can now:
 ## Installation
 
 ```bash
-$ go get -u github.com/CyrusRoshan/pickture
-$ cd $GOPATH/src/github.com/CyrusRoshan/pickture/
-$ make
+go get -u github.com/CyrusRoshan/pickture
+cd $GOPATH/src/github.com/CyrusRoshan/pickture/
+make
 ```
 
 Now you can run `pickture` anywhere!

@@ -1,4 +1,4 @@
-# pickture
+# pickture 🌃
 visual picture selection utility
 
 this helps you toss photos into "good" and "bad" folders
@@ -19,10 +19,11 @@ I usually take about a billion photos on my camera, dump them to my laptop, and 
 1. Repeat
 
 ### You can now:
-1. Toss whatever jumble of folders you have together
-1. Slap open `pickture`
-1. Smash some keys to toss photos in folders ("keep," "delete," "photos with dogs in them," whatever category you want)
-1. Look at your nicely sorted photos!
+1. Toss whatever jumble of folders and pictures you have together! 🤠📚🗃
+1. Slap open 👋 `pickture`!
+1. Smash some keys 😤🤜🎹 to toss photos in folders! _(a key/output folder can mean "keep," "delete," "photos
+   with dogs in them," whatever category you want)_
+1. Look at your _nicely sorted_ photos! 😊
 
 ## Installation
 

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image"
+	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
 	"os"

@@ -41,18 +41,21 @@ func Render() {
 
 func Setup(win *pixelgl.Window) {
 	var args = struct {
-		Input  string `arg:"positional" help:"test"`
-		Output string `arg:"positional" help:"test"`
+		Input               string `arg:"positional" help:"Input folder (where all input files are stored in)"`
+		Output              string `arg:"positional" help:"Output folder (where the sorted folders and their contents will go)"`
+		DisableUniqueSuffix bool   `arg:"--nosuffix" help:"disable unique suffix for images. Warning: may result in errors if nested input folders have files with conflicting names."`
 	}{
-		Input:  "./input",
-		Output: "./output",
+		Input:               "./input",
+		Output:              "./output",
+		DisableUniqueSuffix: false,
 	}
 	arg.MustParse(&args)
 
 	logic.Init(logic.InitProperties{
-		InputPath:   args.Input,
-		AOutputPath: args.Output + "/a",
-		DOutputPath: args.Output + "/d",
+		InputPath:           args.Input,
+		AOutputPath:         args.Output + "/a",
+		DOutputPath:         args.Output + "/d",
+		DisableUniqueSuffix: args.DisableUniqueSuffix,
 	})
 }
 

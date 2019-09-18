@@ -2,19 +2,25 @@ package logic
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/input"
 )
 
 type InitProperties struct {
-	InputPath   string
-	AOutputPath string
-	DOutputPath string
+	InputPath           string
+	AOutputPath         string
+	DOutputPath         string
+	DisableUniqueSuffix bool
 }
 
-func Init(props InitProperties) {
-	getNewState(props.InputPath) // Update state when starting
+var props InitProperties
+
+func Init(p InitProperties) {
+	props = p
+	getNewState() // Update state when starting
 
 	eventChannel := input.GetKeyPressEvents()
 
@@ -24,7 +30,24 @@ func Init(props InitProperties) {
 	// The current change
 	currentChange := files.Change{}
 	addPathToCopyTo := func(pathPrefix string) {
-		fullPath := pathPrefix + "/" + CurrentFile().Info.Name()
+		var outputName string
+		inputName := CurrentFile().Info.Name()
+
+		if props.DisableUniqueSuffix {
+			outputName = inputName
+		} else {
+			// Get file name
+			ext := filepath.Ext(inputName)
+			prefix := strings.TrimSuffix(inputName, ext)
+
+			// Make unique output file name, given input file name
+			// Note: whether this goes to folder a or d, the output
+			// file name will be the same, to allow you to reference
+			// the same file across output folders
+			outputName = fmt.Sprintf("%s.%s%s", prefix, stateInfo.fileUUID, ext)
+		}
+
+		fullPath := pathPrefix + "/" + outputName
 		currentChange.NewPaths = append(currentChange.NewPaths, fullPath)
 	}
 
@@ -54,7 +77,7 @@ func Init(props InitProperties) {
 				currentChange = files.Change{}
 
 				// Update the state
-				getNewState(props.InputPath)
+				getNewState()
 			case input.UndoEvent:
 				fmt.Println("UNDO EVENT!!!")
 				// If current change isn't empty, just reset it and exit
@@ -76,7 +99,7 @@ func Init(props InitProperties) {
 				files.ExecuteChangeCommands(cmds)
 
 				// Update the state
-				getNewState(props.InputPath)
+				getNewState()
 
 			case input.APressEvent:
 				fmt.Println("A pressed!")

@@ -3,7 +3,6 @@ package ui
 import (
 	"math"
 
-	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/utils"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
@@ -19,14 +18,14 @@ func imageScalingRatio(winBounds pixel.Rect, imageBounds pixel.Rect) float64 {
 
 var imageCache = map[string]*pixel.Sprite{}
 
-func DrawBackgroundImage(win *pixelgl.Window, image files.File) {
-	imageSprite, ok := imageCache[image.Path]
+func DrawBackgroundImage(win *pixelgl.Window, path string) {
+	imageSprite, ok := imageCache[path]
 	if !ok {
 		var err error
-		imageSprite, err = SpriteFromFile(image.Path, nil)
-		utils.PanicIfErr(err, "Image Path: "+image.Path)
+		imageSprite, err = SpriteFromFile(path, nil)
+		utils.PanicIfErr(err, "Image Path: "+path)
 
-		imageCache[image.Path] = imageSprite
+		imageCache[path] = imageSprite
 	}
 
 	scaleRatio := imageScalingRatio(win.Bounds(), imageSprite.Frame())

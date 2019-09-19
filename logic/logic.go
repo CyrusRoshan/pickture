@@ -20,8 +20,10 @@ var props InitProperties
 
 func Init(p InitProperties) {
 	props = p
-	getNewState() // Update state when starting
 
+	// Initialize
+	getInitialState()
+	getNewState()
 	eventChannel := input.GetKeyPressEvents()
 
 	// All changes that have happened
@@ -31,7 +33,7 @@ func Init(p InitProperties) {
 	currentChange := files.Change{}
 	addPathToCopyTo := func(pathPrefix string) {
 		var outputName string
-		inputName := CurrentFile().Info.Name()
+		inputName := GetCurrentFile().Info.Name()
 
 		if props.DisableUniqueSuffix {
 			outputName = inputName
@@ -57,7 +59,7 @@ func Init(p InitProperties) {
 
 			if inputEvent != input.UndoEvent {
 				// Ignore keypresses if we have no files left in the folder
-				if CurrentFile() == nil {
+				if GetCurrentFile() == nil {
 					continue
 				}
 			}
@@ -66,7 +68,7 @@ func Init(p InitProperties) {
 			case input.NextEvent:
 				fmt.Println("Next event!")
 				// Set change src to current file
-				currentChange.OriginalPath = CurrentFile().Path
+				currentChange.OriginalPath = GetCurrentFile().Path
 
 				// Get execute change commands
 				cmds := files.GetChangeCommands(currentChange)
@@ -77,7 +79,9 @@ func Init(p InitProperties) {
 				currentChange = files.Change{}
 
 				// Update the state
+				nextFile()
 				getNewState()
+
 			case input.UndoEvent:
 				fmt.Println("UNDO EVENT!!!")
 				// If current change isn't empty, just reset it and exit
@@ -99,6 +103,7 @@ func Init(p InitProperties) {
 				files.ExecuteChangeCommands(cmds)
 
 				// Update the state
+				prevFile()
 				getNewState()
 
 			case input.APressEvent:

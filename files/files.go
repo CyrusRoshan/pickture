@@ -39,9 +39,7 @@ func isValidExtension(path string) bool {
 	extension := strings.ToLower(filepath.Ext(path))
 	if extension == ".png" ||
 		extension == ".jpg" ||
-		extension == ".jpeg" ||
-		extension == ".raw" ||
-		extension == ".nef" {
+		extension == ".jpeg" {
 		return true
 	}
 	return false

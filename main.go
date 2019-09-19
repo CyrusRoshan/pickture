@@ -65,11 +65,14 @@ func RenderChanges(win *pixelgl.Window) {
 
 	// Draw current state
 	win.Clear(colornames.Black) // Start with black background
-	if currFile := logic.CurrentFile(); currFile != nil {
-		ui.DrawBackgroundImage(win, *currFile) // Draw current image
+
+	imageName := "[none]"
+	if currFile := logic.GetCurrentFile(); currFile != nil {
+		ui.DrawBackgroundImage(win, currFile.Path)
+		imageName = currFile.Info.Name()
 	}
 	ui.DrawButtons(win)
-	ui.DrawImageCount(win, logic.GetImageCount())
+	ui.DrawImageInfo(win, logic.GetImageCount(), imageName)
 }
 
 func CleanUp(win *pixelgl.Window) {

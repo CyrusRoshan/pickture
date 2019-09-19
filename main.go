@@ -1,6 +1,8 @@
 package main
 
 import (
+	"path/filepath"
+
 	"github.com/CyrusRoshan/pickture/input"
 	"github.com/CyrusRoshan/pickture/logic"
 	"github.com/CyrusRoshan/pickture/ui"
@@ -51,10 +53,16 @@ func Setup(win *pixelgl.Window) {
 	}
 	arg.MustParse(&args)
 
+	getAbsPath := func(path string) string {
+		abs, err := filepath.Abs(path)
+		utils.PanicIfErr(err, "Could not get absolute path for "+path)
+		return abs
+	}
+
 	logic.Init(logic.InitProperties{
-		InputPath:           args.Input,
-		AOutputPath:         args.Output + "/a",
-		DOutputPath:         args.Output + "/d",
+		InputPath:           getAbsPath(args.Input),
+		AOutputPath:         getAbsPath(args.Output + "/a"),
+		DOutputPath:         getAbsPath(args.Output + "/d"),
 		DisableUniqueSuffix: args.DisableUniqueSuffix,
 	})
 }
@@ -67,12 +75,12 @@ func RenderChanges(win *pixelgl.Window) {
 	win.Clear(colornames.Black) // Start with black background
 
 	imageName := "[none]"
-	if currFile := logic.GetCurrentFile(); currFile != nil {
+	if currFile := logic.State.GetCurrentFile(); currFile != nil {
 		ui.DrawBackgroundImage(win, currFile.Path)
 		imageName = currFile.Info.Name()
 	}
 	ui.DrawButtons(win)
-	ui.DrawImageInfo(win, logic.GetImageCount(), imageName)
+	ui.DrawImageInfo(win, logic.State.GetImageCount(), imageName)
 }
 
 func CleanUp(win *pixelgl.Window) {

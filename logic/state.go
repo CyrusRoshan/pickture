@@ -1,6 +1,8 @@
 package logic
 
 import (
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/CyrusRoshan/pickture/files"
@@ -8,57 +10,89 @@ import (
 	"github.com/google/uuid"
 )
 
-var stateInfo = struct {
+var State = state{}
+
+type state struct {
 	fileIndex int
 	files     []files.File
 
+	// UUID for moved files (to avoid conflicts)
 	fileUUID string
-}{}
 
-func getInitialState() {
+	// All changes that have happened
+	previousChanges []files.Change
+	// The current change
+	currentChange files.Change
+}
+
+// GetImageCount used for displaying image count
+func (s *state) GetImageCount() int {
+	return len(s.files)
+}
+
+// GetCurrentFile used for displaying current file name
+func (s *state) GetCurrentFile() *files.File {
+	if s.fileIndex > len(s.files)-1 {
+		return nil
+	}
+	return &s.files[s.fileIndex]
+}
+
+func (s *state) initialize() {
 	// Get all files
 	allFiles, err := files.ListFiles(props.InputPath)
 	utils.PanicIfErr(err)
-	stateInfo.files = allFiles
+	s.files = allFiles
 
 	if !props.DisableUniqueSuffix {
-		stateInfo.fileUUID = generateFileUUID()
+		s.newFileUUID()
 	}
 }
 
-func getNewState() {
+func (s *state) update() {
 	if !props.DisableUniqueSuffix {
-		stateInfo.fileUUID = generateFileUUID()
+		s.newFileUUID()
 	}
 }
 
-func GetImageCount() int {
-	return len(stateInfo.files)
-}
-
-func GetCurrentFile() *files.File {
-	if stateInfo.fileIndex > len(stateInfo.files)-1 {
-		return nil
-	}
-	return &stateInfo.files[stateInfo.fileIndex]
-}
-
-func nextFile() {
+func (s *state) nextFile() {
 	// Allow traversing 1 past the bounds of the array,
 	// which is where we return nil values from currentFile()
-	if stateInfo.fileIndex < len(stateInfo.files) {
-		stateInfo.fileIndex++
+	if s.fileIndex < len(s.files) {
+		s.fileIndex++
 	}
 }
 
-func prevFile() {
-	if stateInfo.fileIndex > 0 {
-		stateInfo.fileIndex--
+func (s *state) prevFile() {
+	if s.fileIndex > 0 {
+		s.fileIndex--
 	}
 }
 
-func generateFileUUID() string {
+func (s *state) newFileUUID() {
 	id := uuid.New()
 	cleanId := strings.ReplaceAll(id.String(), "-", "")
-	return cleanId[:15] // how much do we need?
+	s.fileUUID = cleanId[:15] // how much do we need?
+}
+
+func (s *state) addOutputPathToCurrentChange(path string) {
+	var outputName string
+	inputName := s.GetCurrentFile().Info.Name()
+
+	if props.DisableUniqueSuffix {
+		outputName = inputName
+	} else {
+		// Get file name
+		ext := filepath.Ext(inputName)
+		prefix := strings.TrimSuffix(inputName, ext)
+
+		// Make unique output file name, given input file name
+		// Note: whether this goes to folder a or d, the output
+		// file name will be the same, to allow you to reference
+		// the same file across output folders
+		outputName = fmt.Sprintf("%s.%s%s", prefix, s.fileUUID, ext)
+	}
+
+	fullPath := path + "/" + outputName
+	s.currentChange.NewPaths = append(s.currentChange.NewPaths, fullPath)
 }

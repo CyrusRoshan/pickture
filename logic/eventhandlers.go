@@ -17,20 +17,25 @@ func handleInputEvents(inputEvents chan input.InputEvent) {
 				continue
 			}
 		}
+		fmt.Printf("New Event: %s!\n", inputEvent)
 
 		switch inputEvent {
 		case input.NextEvent:
-			fmt.Println("Next event!")
 			onNext()
 		case input.UndoEvent:
-			fmt.Println("UNDO EVENT!!!")
 			onUndo()
 		case input.APressEvent:
-			fmt.Println("A pressed!")
-			onAPress()
+			State.addOutputPathToCurrentChange(props.AOutputPath)
+		case input.SPressEvent:
+			State.addOutputPathToCurrentChange(props.SOutputPath)
 		case input.DPressEvent:
-			fmt.Println("D pressed!")
-			onDPress()
+			State.addOutputPathToCurrentChange(props.DOutputPath)
+		case input.QPressEvent:
+			State.addOutputPathToCurrentChange(props.QOutputPath)
+		case input.WPressEvent:
+			State.addOutputPathToCurrentChange(props.WOutputPath)
+		case input.EPressEvent:
+			State.addOutputPathToCurrentChange(props.EOutputPath)
 		default:
 			fmt.Printf("Unhandled event: %s", inputEvent)
 		}
@@ -76,12 +81,4 @@ func onUndo() {
 	State.prevFile()
 	State.update()
 
-}
-
-func onAPress() {
-	State.addOutputPathToCurrentChange(props.AOutputPath)
-}
-
-func onDPress() {
-	State.addOutputPathToCurrentChange(props.DOutputPath)
 }

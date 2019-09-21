@@ -32,11 +32,14 @@ func NewImageCache(props ImageCacheProps) *ImageCache {
 		ImageCacheProps: props,
 	}
 
-	// go cache.Preload(1) // Preload first item
+	go cache.Preload(1) // Preload first item
 	return &cache
 }
 
 func (c *ImageCache) Get(i int) *image.Image {
+	if c.outOfBounds(i) {
+		return nil
+	}
 	c.locks[i].Lock()
 	img := c.images[i]
 	if img == nil {
@@ -58,8 +61,15 @@ func (c *ImageCache) Get(i int) *image.Image {
 }
 
 func (c *ImageCache) Preload(i int) {
+	if c.outOfBounds(i) {
+		return
+	}
 	if c.images[i] == nil {
 		loadedImg := c.LoadFunc(c.Paths[i])
 		c.images[i] = &loadedImg
 	}
+}
+
+func (c *ImageCache) outOfBounds(i int) bool {
+	return i < 0 || i > len(c.images)-1
 }

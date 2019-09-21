@@ -7,7 +7,11 @@ import (
 type InitProperties struct {
 	InputPath           string
 	AOutputPath         string
+	SOutputPath         string
 	DOutputPath         string
+	QOutputPath         string
+	WOutputPath         string
+	EOutputPath         string
 	DisableUniqueSuffix bool
 }
 

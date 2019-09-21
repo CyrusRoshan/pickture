@@ -62,8 +62,12 @@ func Setup(win *pixelgl.Window) {
 
 	logic.Init(logic.InitProperties{
 		InputPath:           getAbsPath(args.Input),
-		AOutputPath:         getAbsPath(args.Output + "/a"),
-		DOutputPath:         getAbsPath(args.Output + "/d"),
+		AOutputPath:         getAbsPath(args.Output + "/A"),
+		SOutputPath:         getAbsPath(args.Output + "/S"),
+		DOutputPath:         getAbsPath(args.Output + "/D"),
+		QOutputPath:         getAbsPath(args.Output + "/Q"),
+		WOutputPath:         getAbsPath(args.Output + "/W"),
+		EOutputPath:         getAbsPath(args.Output + "/E"),
 		DisableUniqueSuffix: args.DisableUniqueSuffix,
 	})
 }

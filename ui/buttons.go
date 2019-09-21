@@ -20,6 +20,7 @@ func init() {
 	packBox := packr.NewBox("../assets/raw") // Helps bundle files to binary
 	var getButtonFromAssets = func(filename string) *pixel.Sprite {
 		fullFilename := filename + "_button.png"
+
 		sprite, err := SpriteFromFile(fullFilename, &packBox)
 		utils.PanicIfErr(err)
 		return sprite

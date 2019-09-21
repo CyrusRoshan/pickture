@@ -2,8 +2,11 @@ package logic
 
 import (
 	"fmt"
+	"image"
 	"path/filepath"
 	"strings"
+
+	"github.com/CyrusRoshan/pickture/cache"
 
 	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/utils"
@@ -13,16 +16,48 @@ import (
 var State = state{}
 
 type state struct {
-	fileIndex int
-	files     []files.File
-
 	// UUID for moved files (to avoid conflicts)
 	fileUUID string
 
-	// All changes that have happened
+	// To hold change info (for undo functionality)
 	previousChanges []files.Change
-	// The current change
-	currentChange files.Change
+	currentChange   files.Change
+
+	// Simplify getting files
+	fileList
+	imgCache *cache.ImageCache
+}
+
+func (s *state) initialize() {
+	// Get all files
+	allFiles, err := files.ListFiles(props.InputPath)
+	utils.PanicIfErr(err)
+	s.files = allFiles
+
+	// Set up the cache
+	paths := make([]string, len(s.files))
+	for i, file := range s.files {
+		paths[i] = file.Path
+	}
+	s.imgCache = cache.NewImageCache(cache.ImageCacheProps{
+		Paths: paths,
+		LoadFunc: func(path string) image.Image {
+			img, err := files.LoadImage(path, nil)
+			utils.PanicIfErr(err, "Error loading image for cache")
+			return img
+		},
+		PreloadCount: 5,
+	})
+
+	if !props.DisableUniqueSuffix {
+		s.resetFileUUID()
+	}
+}
+
+func (s *state) update() {
+	if !props.DisableUniqueSuffix {
+		s.resetFileUUID()
+	}
 }
 
 // GetImageCount used for displaying image count
@@ -32,44 +67,21 @@ func (s *state) GetImageCount() int {
 
 // GetCurrentFile used for displaying current file name
 func (s *state) GetCurrentFile() *files.File {
-	if s.fileIndex > len(s.files)-1 {
+	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
 		return nil
 	}
 	return &s.files[s.fileIndex]
 }
 
-func (s *state) initialize() {
-	// Get all files
-	allFiles, err := files.ListFiles(props.InputPath)
-	utils.PanicIfErr(err)
-	s.files = allFiles
-
-	if !props.DisableUniqueSuffix {
-		s.newFileUUID()
+// GetCurrentFile used for displaying current file name
+func (s *state) GetCurrentImage() *image.Image {
+	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
+		return nil
 	}
+	return s.imgCache.Get(s.fileIndex)
 }
 
-func (s *state) update() {
-	if !props.DisableUniqueSuffix {
-		s.newFileUUID()
-	}
-}
-
-func (s *state) nextFile() {
-	// Allow traversing 1 past the bounds of the array,
-	// which is where we return nil values from currentFile()
-	if s.fileIndex < len(s.files) {
-		s.fileIndex++
-	}
-}
-
-func (s *state) prevFile() {
-	if s.fileIndex > 0 {
-		s.fileIndex--
-	}
-}
-
-func (s *state) newFileUUID() {
+func (s *state) resetFileUUID() {
 	id := uuid.New()
 	cleanId := strings.ReplaceAll(id.String(), "-", "")
 	s.fileUUID = cleanId[:15] // how much do we need?

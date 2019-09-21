@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"path/filepath"
 
 	"github.com/CyrusRoshan/pickture/input"
@@ -76,7 +77,14 @@ func RenderChanges(win *pixelgl.Window) {
 
 	imageName := "[none]"
 	if currFile := logic.State.GetCurrentFile(); currFile != nil {
-		ui.DrawBackgroundImage(win, currFile.Path)
+		var currImg *image.Image
+
+		utils.LogTimeSpent(func() {
+			currImg = logic.State.GetCurrentImage()
+		}, "getting image")
+		utils.LogTimeSpent(func() {
+			ui.DrawBackgroundImage(win, currImg)
+		}, "drawing background image")
 		imageName = currFile.Info.Name()
 	}
 	ui.DrawButtons(win)

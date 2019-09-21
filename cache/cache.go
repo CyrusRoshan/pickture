@@ -7,7 +7,7 @@ import (
 
 // Image cache uses an array structure for O[1] indexing.
 // This requires knowing the size of the cache beforehand.
-type imageCache struct {
+type ImageCache struct {
 	images []*image.Image
 	locks  []sync.Mutex
 
@@ -18,29 +18,30 @@ type imageCache struct {
 // function.
 type ImageCacheProps struct {
 	Paths    []string
-	LoadFunc func(string) *image.Image
+	LoadFunc func(string) image.Image
 
 	// Number of images to preload ahead of i when calling Get(i)
 	PreloadCount int
 }
 
-func NewImageCache(props ImageCacheProps) *imageCache {
+func NewImageCache(props ImageCacheProps) *ImageCache {
 	length := len(props.Paths)
-	cache := imageCache{
+	cache := ImageCache{
 		images:          make([]*image.Image, length),
 		locks:           make([]sync.Mutex, length),
 		ImageCacheProps: props,
 	}
 
-	go cache.Preload(1) // Preload first item
+	// go cache.Preload(1) // Preload first item
 	return &cache
 }
 
-func (c *imageCache) Get(i int) *image.Image {
+func (c *ImageCache) Get(i int) *image.Image {
 	c.locks[i].Lock()
 	img := c.images[i]
 	if img == nil {
-		img = c.LoadFunc(c.Paths[i])
+		loadedImg := c.LoadFunc(c.Paths[i])
+		img = &loadedImg
 		c.images[i] = img
 	}
 	c.locks[i].Unlock()
@@ -56,8 +57,9 @@ func (c *imageCache) Get(i int) *image.Image {
 	return img
 }
 
-func (c *imageCache) Preload(i int) {
+func (c *ImageCache) Preload(i int) {
 	if c.images[i] == nil {
-		c.images[i] = c.LoadFunc(c.Paths[i])
+		loadedImg := c.LoadFunc(c.Paths[i])
+		c.images[i] = &loadedImg
 	}
 }

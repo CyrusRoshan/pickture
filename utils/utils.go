@@ -1,6 +1,11 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"math"
+	"time"
+)
 
 func PanicIfErr(err error, messages ...string) {
 	if err != nil {
@@ -9,4 +14,11 @@ func PanicIfErr(err error, messages ...string) {
 		}
 		panic(err)
 	}
+}
+
+func LogTimeSpent(fn func(), messages ...string) {
+	start := time.Now()
+	fn()
+	elapsed := time.Now().Sub(start)
+	log.Printf("Time elapsed %d ms %q", elapsed.Nanoseconds()/int64(math.Pow10(6)), messages)
 }

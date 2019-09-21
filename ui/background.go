@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"image"
 	"math"
 
 	"github.com/CyrusRoshan/pickture/utils"
@@ -16,20 +17,22 @@ func imageScalingRatio(winBounds pixel.Rect, imageBounds pixel.Rect) float64 {
 	return smallestRatio
 }
 
-var imageCache = map[string]*pixel.Sprite{}
+func DrawBackgroundImage(win *pixelgl.Window, img *image.Image) {
+	var ps *pixel.Sprite
+	utils.LogTimeSpent(func() {
+		pd := pixel.PictureDataFromImage(*img)
+		ps = pixel.NewSprite(pd, pd.Bounds())
+	}, "converting to sprite")
 
-func DrawBackgroundImage(win *pixelgl.Window, path string) {
-	imageSprite, ok := imageCache[path]
-	if !ok {
-		var err error
-		imageSprite, err = SpriteFromFile(path, nil)
-		utils.PanicIfErr(err, "Image Path: "+path)
-
-		imageCache[path] = imageSprite
-	}
-
-	scaleRatio := imageScalingRatio(win.Bounds(), imageSprite.Frame())
-	imageSprite.Draw(win, pixel.IM.
-		Scaled(pixel.ZV, scaleRatio).
-		Moved(win.Bounds().Center()))
+	utils.LogTimeSpent(func() {
+		scaleRatio := imageScalingRatio(
+			win.Bounds(),
+			ps.Frame(),
+		)
+		ps.Draw(win,
+			pixel.IM.
+				Scaled(pixel.ZV, scaleRatio).
+				Moved(win.Bounds().Center()),
+		)
+	}, "actually drawing and scaling")
 }

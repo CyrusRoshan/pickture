@@ -29,5 +29,6 @@ var props InitProperties
 func Init(p InitProperties) {
 	props = p
 	State.initialize()
+	p.OnChange()
 	go handleInputEvents(p.InputEvents, p.OnChange)
 }

@@ -14,7 +14,7 @@ func handleInputEvents(inputEvents chan input.InputEvent, onChange func()) {
 		// Ignore keypresses if we have no files left in the folder
 		if inputEvent != input.UndoEvent {
 			if State.GetCurrentFile() == nil {
-				fmt.Println("Skipping undo event since there are files left")
+				fmt.Println("Skipping non-undo events since there are no images left (but maybe undoing would show them)")
 				continue
 			}
 		}

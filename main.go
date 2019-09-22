@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/CyrusRoshan/pickture/input"
@@ -12,37 +11,24 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-func main() {
-	Render()
-}
-
 const (
 	Title  = "pickture"
 	MaxFPS = 30
 )
 
-func Render() {
-	// Init GTK
+func main() {
+	// Initialize GUI library
 	gtk.Init(nil)
-
-	// Build window
 	window, err := ui.BuildWindow(Title)
 	utils.PanicIfErr(err, "Could not build window")
 
-	// Initial setup
-	fmt.Println("INIT")
-	SetupInternals(window,
-		func() {
-			RenderChanges(window)
-		},
-	)
+	// Initialize pickture logic
+	rootWidget, updateRender := ui.Root()
+	SetupInternals(window, updateRender)
 
-	fmt.Println("NEWBOX")
-	container, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	utils.PanicIfErr(err, "error creating box")
-	buttonGrid := ui.GetButtonGrid()
-	container.Add(buttonGrid)
-	window.Add(container)
+	// Hook in and render the UI
+	window.Add(rootWidget)
+	window.ShowAll()
 
 	// Execute and block main thread
 	gtk.Main()
@@ -81,27 +67,4 @@ func SetupInternals(window *gtk.Window, OnChange func()) {
 
 		OnChange: OnChange,
 	})
-}
-
-func RenderChanges(win *gtk.Window) {
-	fmt.Println("RENDERING CHANGES!")
-	return
-	// container.PackStart(child, expand, fill, padding)
-
-	// container.PackEnd(child, expand, fill, padding)
-
-	// imageName := "[none]"
-	// if currFile := logic.State.GetCurrentFile(); currFile != nil {
-	// 	var currImg *image.Image
-
-	// 	utils.LogTimeSpent(func() {
-	// 		currImg = logic.State.GetCurrentImage()
-	// 	}, "getting image")
-	// 	utils.LogTimeSpent(func() {
-	// 		ui.DrawBackgroundImage(win, currImg)
-	// 	}, "drawing background image")
-	// 	imageName = currFile.Info.Name()
-	// }
-	// ui.DrawButtons(win)
-	// ui.DrawImageInfo(win, logic.State.GetImageCount(), imageName)
 }

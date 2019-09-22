@@ -36,7 +36,7 @@ func init() {
 	DButton = getButtonFromAssets("d")
 }
 
-func GetButtonGrid() *gtk.Grid {
+func ButtonsHolder() *gtk.Grid {
 	grid, err := gtk.GridNew()
 	if err != nil {
 		log.Fatal("Unable to create grid:", err)
@@ -52,7 +52,7 @@ func GetButtonGrid() *gtk.Grid {
 		log.Fatal("Unable to create button:", err)
 	}
 
-	grid.Attach(insertBtn, 0, 1, 1, 1)
+	grid.Add(insertBtn)
 	grid.Attach(removeBtn, 1, 1, 1, 1)
 
 	return grid

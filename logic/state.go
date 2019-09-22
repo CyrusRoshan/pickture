@@ -2,9 +2,10 @@ package logic
 
 import (
 	"fmt"
-	"image"
 	"path/filepath"
 	"strings"
+
+	"github.com/gotk3/gotk3/gdk"
 
 	"github.com/CyrusRoshan/pickture/cache"
 
@@ -25,7 +26,7 @@ type state struct {
 
 	// Simplify getting files
 	fileList
-	imgCache *cache.ImageCache
+	fileDataCache *cache.FileArrayCache
 }
 
 func (s *state) initialize() {
@@ -39,12 +40,12 @@ func (s *state) initialize() {
 	for i, file := range s.files {
 		paths[i] = file.Path
 	}
-	s.imgCache = cache.NewImageCache(cache.ImageCacheProps{
+	s.fileDataCache = cache.NewFileArrayCache(cache.FileArrayCacheProps{
 		Paths: paths,
-		LoadFunc: func(path string) image.Image {
-			img, err := files.LoadImage(path, nil)
+		LoadFunc: func(path string) *gdk.Pixbuf {
+			pixbuf, err := files.PixbufFromFile(path, nil)
 			utils.PanicIfErr(err, "Error loading image for cache")
-			return img
+			return pixbuf
 		},
 		PreloadCount: 5,
 	})
@@ -65,6 +66,11 @@ func (s *state) GetImageCount() int {
 	return len(s.files)
 }
 
+// GetCurrentImageIndex used for displaying image count
+func (s *state) GetCurrentImageIndex() int {
+	return s.fileIndex
+}
+
 // GetCurrentFile used for displaying current file name
 func (s *state) GetCurrentFile() *files.File {
 	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
@@ -74,11 +80,17 @@ func (s *state) GetCurrentFile() *files.File {
 }
 
 // GetCurrentFile used for displaying current file name
-func (s *state) GetCurrentImage() *image.Image {
+func (s *state) GetCurrentImage() *gdk.Pixbuf {
 	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
 		return nil
 	}
-	return s.imgCache.Get(s.fileIndex)
+	// fileData, ok := s.fileDataCache.Get(s.fileIndex).(*gdk.Pixbuf)
+	// if !ok {
+	// 	panic("couldn't convert pixbuf pointer from interface")
+	// }
+	fileData := s.fileDataCache.Get(s.fileIndex)
+	fmt.Println("get data")
+	return fileData
 }
 
 func (s *state) resetFileUUID() {

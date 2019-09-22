@@ -1,52 +1,53 @@
 package cache
 
 import (
-	"image"
 	"sync"
+
+	"github.com/gotk3/gotk3/gdk"
 )
 
-// Image cache uses an array structure for O[1] indexing.
+// FileArrayCache uses an array structure for O[1] indexing.
 // This requires knowing the size of the cache beforehand.
-type ImageCache struct {
-	images []*image.Image
-	locks  []sync.Mutex
+type FileArrayCache struct {
+	items []*gdk.Pixbuf
+	locks []sync.Mutex
 
-	ImageCacheProps
+	FileArrayCacheProps
 }
 
-// We need an array of all of the paths for the images as well as a lookup
-// function.
-type ImageCacheProps struct {
+// We need an array of all of the paths as well as a lookup function to perform ETL.
+type FileArrayCacheProps struct {
 	Paths    []string
-	LoadFunc func(string) image.Image
+	LoadFunc func(string) *gdk.Pixbuf
 
-	// Number of images to preload ahead of i when calling Get(i)
+	// Number of files to preload ahead of i when calling Get(i)
 	PreloadCount int
 }
 
-func NewImageCache(props ImageCacheProps) *ImageCache {
+func NewFileArrayCache(props FileArrayCacheProps) *FileArrayCache {
 	length := len(props.Paths)
-	cache := ImageCache{
-		images:          make([]*image.Image, length),
-		locks:           make([]sync.Mutex, length),
-		ImageCacheProps: props,
+	cache := FileArrayCache{
+		items:               make([]*gdk.Pixbuf, length),
+		locks:               make([]sync.Mutex, length),
+		FileArrayCacheProps: props,
 	}
 
 	go cache.Preload(1) // Preload first item
 	return &cache
 }
 
-func (c *ImageCache) Get(i int) *image.Image {
+func (c *FileArrayCache) Get(i int) *gdk.Pixbuf {
 	if c.outOfBounds(i) {
 		return nil
 	}
 	c.locks[i].Lock()
-	img := c.images[i]
-	if img == nil {
-		loadedImg := c.LoadFunc(c.Paths[i])
-		img = &loadedImg
-		c.images[i] = img
+
+	item := c.items[i]
+	if item == nil {
+		c.items[i] = c.LoadFunc(c.Paths[i])
+		item = c.items[i]
 	}
+
 	c.locks[i].Unlock()
 
 	// Preload ahead
@@ -57,19 +58,20 @@ func (c *ImageCache) Get(i int) *image.Image {
 		}
 	}(i)
 
-	return img
+	return item
 }
 
-func (c *ImageCache) Preload(i int) {
+func (c *FileArrayCache) Preload(i int) {
 	if c.outOfBounds(i) {
 		return
 	}
-	if c.images[i] == nil {
-		loadedImg := c.LoadFunc(c.Paths[i])
-		c.images[i] = &loadedImg
+	c.locks[i].Lock()
+	if c.items[i] == nil {
+		c.items[i] = c.LoadFunc(c.Paths[i])
 	}
+	c.locks[i].Unlock()
 }
 
-func (c *ImageCache) outOfBounds(i int) bool {
-	return i < 0 || i > len(c.images)-1
+func (c *FileArrayCache) outOfBounds(i int) bool {
+	return i < 0 || i > len(c.items)-1
 }

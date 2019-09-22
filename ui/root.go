@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/CyrusRoshan/pickture/ui/widgets"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -9,12 +11,14 @@ import (
 	"github.com/CyrusRoshan/pickture/utils"
 )
 
-func Root() (rootWidget *gtk.Widget, onUpdate func()) {
+func Root(window *gtk.Window) (rootWidget *gtk.Widget, onUpdate func()) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	utils.PanicIfErr(err, "error creating box")
 
 	// box.Add(ButtonsHolder())
-	// imageHolder := widgets.TitledImageHolderWidget()
+
+	imageHolder := widgets.TitledImageHolderWidget(&window.Container.Widget)
+	box.Add(imageHolder.InnerWidget)
 
 	imageInfo := widgets.ImageInfoHolderWidget()
 	box.Add(imageInfo.InnerWidget)
@@ -24,13 +28,15 @@ func Root() (rootWidget *gtk.Widget, onUpdate func()) {
 		if currFile := logic.State.GetCurrentFile(); currFile != nil {
 			imageName = currFile.Info.Name()
 
-			// var currImg *image.Image
-			// currImg = logic.State.GetCurrentImage()
-
-			// DrawBackgroundImage(win, currImg)
+			fmt.Println("UPDATED")
+			imageHolder.Update(widgets.TitledImageHolderState{
+				Title:       imageName,
+				ImagePixbuf: logic.State.GetCurrentImage(),
+			})
 		}
 
 		imageInfo.Update(widgets.ImageInfoHolderState{
+			Index: logic.State.GetCurrentImageIndex(),
 			Count: logic.State.GetImageCount(),
 			Name:  imageName,
 		})

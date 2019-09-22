@@ -1,6 +1,9 @@
 package widgets
 
 import (
+	"fmt"
+	"math"
+
 	"github.com/CyrusRoshan/pickture/utils"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -12,12 +15,17 @@ type TitledImageHolderState struct {
 	ImagePixbuf *gdk.Pixbuf
 }
 
-func TitledImageHolderWidget() *UpdaterWidget {
+func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 	frame, err := gtk.FrameNew(DefaultText)
 	utils.PanicIfErr(err)
+	frame.SetHExpand(true)
+	frame.SetVExpand(true)
 
 	img, err := gtk.ImageNew()
 	utils.PanicIfErr(err)
+	img.SetHExpand(true)
+	img.SetVExpand(true)
+	frame.Add(img)
 
 	gtkWidget := &frame.Container.Widget
 
@@ -28,7 +36,24 @@ func TitledImageHolderWidget() *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		_, err := glib.IdleAdd(img.SetFromPixbuf, s.ImagePixbuf)
+		w, h := scaleImage(
+			parent.GetAllocatedWidth(),
+			parent.GetAllocatedHeight(),
+			s.ImagePixbuf.GetWidth(),
+			s.ImagePixbuf.GetHeight(),
+			0.9,
+		)
+
+		fmt.Println(parent.GetAllocatedWidth(),
+			parent.GetAllocatedHeight(),
+			s.ImagePixbuf.GetWidth(),
+			s.ImagePixbuf.GetHeight())
+		fmt.Println(w, h)
+
+		pixbuf, err := s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_BILINEAR)
+		utils.PanicIfErr(err)
+
+		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
 		utils.PanicIfErr(err)
 
 		_, err = glib.IdleAdd(frame.SetLabel, s.Title)
@@ -38,29 +63,15 @@ func TitledImageHolderWidget() *UpdaterWidget {
 	return &updaterWidget
 }
 
-// func imageScalingRatio(winBounds pixel.Rect, imageBounds pixel.Rect) float64 {
-// 	wRatio := winBounds.W() / imageBounds.W()
-// 	hRatio := winBounds.H() / imageBounds.H()
+func scaleImage(fitWidth, fitHeight, imageWidth, imageHeight int, ratio float64) (width, height int) {
+	ratio *= imageScalingRatio(fitWidth, fitHeight, imageWidth, imageHeight)
+	return int(float64(imageWidth) * ratio), int(float64(imageHeight) * ratio)
+}
 
-// 	smallestRatio := math.Min(wRatio, hRatio)
-// 	return smallestRatio
-// }
-// func DrawBackgroundImage(win *pixelgl.Window, img *image.Image) {
-// 	var ps *pixel.Sprite
-// 	utils.LogTimeSpent(func() {
-// 		pd := pixel.PictureDataFromImage(*img)
-// 		ps = pixel.NewSprite(pd, pd.Bounds())
-// 	}, "converting to sprite")
+func imageScalingRatio(fitWidth, fitHeight, imageWidth, imageHeight int) float64 {
+	wRatio := float64(fitWidth) / float64(imageWidth)
+	hRatio := float64(fitHeight) / float64(imageHeight)
 
-// 	utils.LogTimeSpent(func() {
-// 		scaleRatio := imageScalingRatio(
-// 			win.Bounds(),
-// 			ps.Frame(),
-// 		)
-// 		ps.Draw(win,
-// 			pixel.IM.
-// 				Scaled(pixel.ZV, scaleRatio).
-// 				Moved(win.Bounds().Center()),
-// 		)
-// 	}, "actually drawing and scaling")
-// }
+	smallestRatio := math.Min(wRatio, hRatio)
+	return smallestRatio
+}

@@ -9,6 +9,7 @@ import (
 )
 
 type ImageInfoHolderState struct {
+	Index int
 	Count int
 	Name  string
 }
@@ -34,7 +35,7 @@ func ImageInfoHolderWidget() *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		_, err := glib.IdleAdd(countLabel.SetText, fmt.Sprintf("Images: (%d)", s.Count))
+		_, err := glib.IdleAdd(countLabel.SetText, fmt.Sprintf("Images: (%d/%d)", s.Index, s.Count))
 		utils.PanicIfErr(err)
 
 		_, err = glib.IdleAdd(nameLabel.SetText, fmt.Sprintf("Name: (%s)", s.Name))

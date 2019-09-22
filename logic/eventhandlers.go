@@ -11,6 +11,7 @@ func handleInputEvents(inputEvents chan input.InputEvent, onChange func()) {
 	for {
 		inputEvent := <-inputEvents
 
+		fmt.Println("[event trigger]")
 		// Ignore keypresses if we have no files left in the folder
 		if inputEvent != input.UndoEvent {
 			if State.GetCurrentFile() == nil {

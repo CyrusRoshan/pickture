@@ -23,7 +23,7 @@ func main() {
 	utils.PanicIfErr(err, "Could not build window")
 
 	// Initialize pickture logic
-	rootWidget, updateRender := ui.Root()
+	rootWidget, updateRender := ui.Root(window)
 	SetupInternals(window, updateRender)
 
 	// Hook in and render the UI

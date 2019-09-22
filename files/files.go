@@ -4,6 +4,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
+	"io/ioutil"
 
 	"net/http"
 	"os"
@@ -50,6 +51,27 @@ func isValidExtension(path string) bool {
 		return true
 	}
 	return false
+}
+
+func LoadFile(path string, box *packr.Box) ([]byte, error) {
+	var file http.File
+	var err error
+
+	if box == nil {
+		file, err = os.Open(path)
+	} else {
+		file, err = box.Open(path)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 func LoadImage(path string, box *packr.Box) (image.Image, error) {

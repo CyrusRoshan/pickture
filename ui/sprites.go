@@ -2,23 +2,21 @@ package ui
 
 import (
 	"github.com/CyrusRoshan/pickture/files"
-	"github.com/faiface/pixel"
 	"github.com/gobuffalo/packr"
+	"github.com/gotk3/gotk3/gdk"
 )
 
-func PictureFromFile(path string, box *packr.Box) (*pixel.PictureData, error) {
-	img, err := files.LoadImage(path, box)
-	if err != nil {
-		return nil, err
-	}
-	pic := pixel.PictureDataFromImage(img)
-	return pic, nil
-}
+func PixbufFromFile(path string, box *packr.Box) (*gdk.Pixbuf, error) {
 
-func SpriteFromFile(path string, box *packr.Box) (*pixel.Sprite, error) {
-	pic, err := PictureFromFile(path, box)
+	//     loader = gdk_pixbuf_loader_new ();
+	//     gdk_pixbuf_loader_write (loader, buffer, length, NULL);
+	//     pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+
+	loader, _ := gdk.PixbufLoaderNew()
+
+	b, err := files.LoadFile(path, box)
 	if err != nil {
 		return nil, err
 	}
-	return pixel.NewSprite(pic, pic.Bounds()), nil
+	return loader.WriteAndReturnPixbuf(b)
 }

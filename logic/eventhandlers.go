@@ -7,13 +7,14 @@ import (
 	"github.com/CyrusRoshan/pickture/input"
 )
 
-func handleInputEvents(inputEvents chan input.InputEvent) {
+func handleInputEvents(inputEvents chan input.InputEvent, onChange func()) {
 	for {
 		inputEvent := <-inputEvents
 
 		// Ignore keypresses if we have no files left in the folder
 		if inputEvent != input.UndoEvent {
 			if State.GetCurrentFile() == nil {
+				fmt.Println("Skipping undo event since there are files left")
 				continue
 			}
 		}
@@ -39,6 +40,8 @@ func handleInputEvents(inputEvents chan input.InputEvent) {
 		default:
 			fmt.Printf("Unhandled event: %s", inputEvent)
 		}
+
+		onChange()
 	}
 }
 

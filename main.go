@@ -1,7 +1,7 @@
 package main
 
 import (
-	"image"
+	"fmt"
 	"path/filepath"
 
 	"github.com/CyrusRoshan/pickture/input"
@@ -9,12 +9,11 @@ import (
 	"github.com/CyrusRoshan/pickture/ui"
 	"github.com/CyrusRoshan/pickture/utils"
 	"github.com/alexflint/go-arg"
-	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 func main() {
-	pixelgl.Run(Render)
+	Render()
 }
 
 const (
@@ -23,26 +22,33 @@ const (
 )
 
 func Render() {
+	// Init GTK
+	gtk.Init(nil)
+
+	// Build window
 	window, err := ui.BuildWindow(Title)
-	utils.PanicIfErr(err)
+	utils.PanicIfErr(err, "Could not build window")
 
 	// Initial setup
-	Setup(window)
-
-	// While running...
-	for !window.Closed() {
-		ui.LimitFPS(30, func() {
-			ui.ShowFPSInTitle(Title, window)
+	fmt.Println("INIT")
+	SetupInternals(window,
+		func() {
 			RenderChanges(window)
-			window.Update()
-		})
-	}
+		},
+	)
 
-	// Clean up before exiting
-	CleanUp(window)
+	fmt.Println("NEWBOX")
+	container, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	utils.PanicIfErr(err, "error creating box")
+	buttonGrid := ui.GetButtonGrid()
+	container.Add(buttonGrid)
+	window.Add(container)
+
+	// Execute and block main thread
+	gtk.Main()
 }
 
-func Setup(win *pixelgl.Window) {
+func SetupInternals(window *gtk.Window, OnChange func()) {
 	var args = struct {
 		Input               string `arg:"positional" help:"Input folder (where all input files are stored in)"`
 		Output              string `arg:"positional" help:"Output folder (where the sorted folders and their contents will go)"`
@@ -61,40 +67,41 @@ func Setup(win *pixelgl.Window) {
 	}
 
 	logic.Init(logic.InitProperties{
-		InputPath:           getAbsPath(args.Input),
-		AOutputPath:         getAbsPath(args.Output + "/A"),
-		SOutputPath:         getAbsPath(args.Output + "/S"),
-		DOutputPath:         getAbsPath(args.Output + "/D"),
-		QOutputPath:         getAbsPath(args.Output + "/Q"),
-		WOutputPath:         getAbsPath(args.Output + "/W"),
-		EOutputPath:         getAbsPath(args.Output + "/E"),
+		InputPath:   getAbsPath(args.Input),
+		AOutputPath: getAbsPath(args.Output + "/A"),
+		SOutputPath: getAbsPath(args.Output + "/S"),
+		DOutputPath: getAbsPath(args.Output + "/D"),
+		QOutputPath: getAbsPath(args.Output + "/Q"),
+		WOutputPath: getAbsPath(args.Output + "/W"),
+		EOutputPath: getAbsPath(args.Output + "/E"),
+
 		DisableUniqueSuffix: args.DisableUniqueSuffix,
+
+		InputEvents: input.BindKeyPressEvents(window),
+
+		OnChange: OnChange,
 	})
 }
 
-func RenderChanges(win *pixelgl.Window) {
-	// Get changes to previous state
-	input.CalculateKeyPressChanges(win)
+func RenderChanges(win *gtk.Window) {
+	fmt.Println("RENDERING CHANGES!")
+	return
+	// container.PackStart(child, expand, fill, padding)
 
-	// Draw current state
-	win.Clear(colornames.Black) // Start with black background
+	// container.PackEnd(child, expand, fill, padding)
 
-	imageName := "[none]"
-	if currFile := logic.State.GetCurrentFile(); currFile != nil {
-		var currImg *image.Image
+	// imageName := "[none]"
+	// if currFile := logic.State.GetCurrentFile(); currFile != nil {
+	// 	var currImg *image.Image
 
-		utils.LogTimeSpent(func() {
-			currImg = logic.State.GetCurrentImage()
-		}, "getting image")
-		utils.LogTimeSpent(func() {
-			ui.DrawBackgroundImage(win, currImg)
-		}, "drawing background image")
-		imageName = currFile.Info.Name()
-	}
-	ui.DrawButtons(win)
-	ui.DrawImageInfo(win, logic.State.GetImageCount(), imageName)
-}
-
-func CleanUp(win *pixelgl.Window) {
-
+	// 	utils.LogTimeSpent(func() {
+	// 		currImg = logic.State.GetCurrentImage()
+	// 	}, "getting image")
+	// 	utils.LogTimeSpent(func() {
+	// 		ui.DrawBackgroundImage(win, currImg)
+	// 	}, "drawing background image")
+	// 	imageName = currFile.Info.Name()
+	// }
+	// ui.DrawButtons(win)
+	// ui.DrawImageInfo(win, logic.State.GetImageCount(), imageName)
 }

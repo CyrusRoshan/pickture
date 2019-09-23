@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/CyrusRoshan/pickture/ui/widgets"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -27,13 +25,12 @@ func Root(window *gtk.Window) (rootWidget *gtk.Widget, onUpdate func()) {
 		imageName := "[none]"
 		if currFile := logic.State.GetCurrentFile(); currFile != nil {
 			imageName = currFile.Info.Name()
-
-			fmt.Println("UPDATED")
-			imageHolder.Update(widgets.TitledImageHolderState{
-				Title:       imageName,
-				ImagePixbuf: logic.State.GetCurrentImage(),
-			})
 		}
+
+		imageHolder.Update(widgets.TitledImageHolderState{
+			Title:       imageName,
+			ImagePixbuf: logic.State.GetCurrentImage(),
+		})
 
 		imageInfo.Update(widgets.ImageInfoHolderState{
 			Index: logic.State.GetCurrentImageIndex(),

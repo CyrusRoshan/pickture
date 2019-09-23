@@ -35,7 +35,13 @@ func ImageInfoHolderWidget() *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		_, err := glib.IdleAdd(countLabel.SetText, fmt.Sprintf("Images: (%d/%d)", s.Index, s.Count))
+		var countText string
+		if s.Index >= s.Count {
+			countText = "No images left!"
+		} else {
+			countText = fmt.Sprintf("Images: (%d/%d)", s.Index+1, s.Count)
+		}
+		_, err := glib.IdleAdd(countLabel.SetText, countText)
 		utils.PanicIfErr(err)
 
 		_, err = glib.IdleAdd(nameLabel.SetText, fmt.Sprintf("Name: (%s)", s.Name))

@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/CyrusRoshan/pickture/utils"
@@ -36,18 +35,19 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		fmt.Println("new image:", s.Title)
+		var pixbuf *gdk.Pixbuf
+		if s.ImagePixbuf != nil {
+			w, h := scaleImage(
+				parent.GetAllocatedWidth(),
+				parent.GetAllocatedHeight(),
+				s.ImagePixbuf.GetWidth(),
+				s.ImagePixbuf.GetHeight(),
+				0.9,
+			)
 
-		w, h := scaleImage(
-			parent.GetAllocatedWidth(),
-			parent.GetAllocatedHeight(),
-			s.ImagePixbuf.GetWidth(),
-			s.ImagePixbuf.GetHeight(),
-			0.9,
-		)
-
-		pixbuf, err := s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_HYPER)
-		utils.PanicIfErr(err, "error scaling pixbuf")
+			pixbuf, err = s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_TILES)
+			utils.PanicIfErr(err, "error scaling pixbuf")
+		}
 
 		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
 		utils.PanicIfErr(err)

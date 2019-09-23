@@ -28,6 +28,47 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 
 	gtkWidget := &frame.Container.Widget
 
+	var renderNewPixbuf = func(pixbuf *gdk.Pixbuf) error {
+		if pixbuf != nil {
+			w, h := scaleImage(
+				parent.GetAllocatedWidth(),
+				parent.GetAllocatedHeight(),
+				pixbuf.GetWidth(),
+				pixbuf.GetHeight(),
+				0.9,
+			)
+
+			pixbuf, err = pixbuf.ScaleSimple(w, h, gdk.INTERP_TILES)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	oldPWidth := parent.GetAllocatedWidth()
+	oldPHeight := parent.GetAllocatedHeight()
+	var resizeImage = func(pixbuf *gdk.Pixbuf) {
+		// Check if we need to resize
+		pWidth := parent.GetAllocatedWidth()
+		pHeight := parent.GetAllocatedHeight()
+		if pWidth == oldPWidth && pHeight == oldPHeight {
+			return
+		}
+		oldPWidth, oldPHeight = pWidth, pHeight
+
+		err := renderNewPixbuf(pixbuf)
+		utils.PanicIfErr(err, "error rendering pixbuf")
+	}
+
+	var lastPixbuf *gdk.Pixbuf
+	img.Connect("draw", func() { resizeImage(lastPixbuf) })
+
 	// Add update func, which can access the pointers we just created
 	var updateFunc = func(state interface{}) {
 		s, ok := state.(TitledImageHolderState)
@@ -35,26 +76,16 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		var pixbuf *gdk.Pixbuf
-		if s.ImagePixbuf != nil {
-			w, h := scaleImage(
-				parent.GetAllocatedWidth(),
-				parent.GetAllocatedHeight(),
-				s.ImagePixbuf.GetWidth(),
-				s.ImagePixbuf.GetHeight(),
-				0.9,
-			)
+		// Sorry this is basically state abuse
+		lastPixbuf = s.ImagePixbuf
 
-			pixbuf, err = s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_TILES)
-			utils.PanicIfErr(err, "error scaling pixbuf")
-		}
-
-		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
-		utils.PanicIfErr(err)
+		err := renderNewPixbuf(s.ImagePixbuf)
+		utils.PanicIfErr(err, "error rendering pixbuf")
 
 		_, err = glib.IdleAdd(frame.SetLabel, s.Title)
 		utils.PanicIfErr(err)
 	}
+
 	updaterWidget := NewUpdaterWidget(gtkWidget, updateFunc)
 	return &updaterWidget
 }

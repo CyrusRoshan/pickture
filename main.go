@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+	"runtime"
 
 	"github.com/CyrusRoshan/pickture/input"
 	"github.com/CyrusRoshan/pickture/logic"
@@ -17,6 +18,10 @@ const (
 )
 
 func main() {
+	// Lock to prevent segfaults on gtk.Main()
+	// https://github.com/gotk3/gotk3/issues/251
+	runtime.LockOSThread()
+
 	// Initialize GUI library
 	gtk.Init(nil)
 	window, err := ui.BuildWindow(Title)

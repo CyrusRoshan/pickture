@@ -32,7 +32,6 @@ func NewFileArrayCache(props FileArrayCacheProps) *FileArrayCache {
 		FileArrayCacheProps: props,
 	}
 
-	go cache.Preload(1) // Preload first item
 	return &cache
 }
 

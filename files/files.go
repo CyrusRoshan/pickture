@@ -96,6 +96,7 @@ func PixbufFromFile(path string, box *packr.Box) (*gdk.Pixbuf, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer loader.Close()
 
 	// Load file
 	file, err := LoadFile(path, box)

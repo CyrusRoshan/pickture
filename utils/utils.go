@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -10,7 +9,7 @@ import (
 func PanicIfErr(err error, messages ...string) {
 	if err != nil {
 		if len(messages) > 0 {
-			fmt.Println(messages)
+			log.Printf("%q", messages)
 		}
 		panic(err)
 	}

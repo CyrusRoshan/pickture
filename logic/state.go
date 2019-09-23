@@ -84,12 +84,7 @@ func (s *state) GetCurrentImage() *gdk.Pixbuf {
 	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
 		return nil
 	}
-	// fileData, ok := s.fileDataCache.Get(s.fileIndex).(*gdk.Pixbuf)
-	// if !ok {
-	// 	panic("couldn't convert pixbuf pointer from interface")
-	// }
 	fileData := s.fileDataCache.Get(s.fileIndex)
-	fmt.Println("get data")
 	return fileData
 }
 

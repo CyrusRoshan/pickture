@@ -1,10 +1,13 @@
 package widgets
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"github.com/CyrusRoshan/pickture/files"
 	"github.com/CyrusRoshan/pickture/utils"
-
 	"github.com/gobuffalo/packr"
+
 	"github.com/gotk3/gotk3/gdk"
 )
 
@@ -18,12 +21,18 @@ var (
 )
 
 func init() {
-	packBox := packr.NewBox("../../assets/raw") // Helps bundle files to binary
+	assetsPath, err := filepath.Abs("./assets/raw")
+	utils.PanicIfErr(err)
+	packBox := packr.NewBox(assetsPath) // Helps bundle files to binary
+
 	var getButtonFromAssets = func(filename string) *gdk.Pixbuf {
 		fullFilename := filename + "_button.png"
 
 		pixbuf, err := files.PixbufFromFile(fullFilename, &packBox)
-		utils.PanicIfErr(err)
+		utils.PanicIfErr(
+			err,
+			fmt.Sprintf("Loading pixbuf from file: %s", fullFilename),
+		)
 		return pixbuf
 	}
 

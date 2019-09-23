@@ -36,6 +36,8 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
+		fmt.Println("new image:", s.Title)
+
 		w, h := scaleImage(
 			parent.GetAllocatedWidth(),
 			parent.GetAllocatedHeight(),
@@ -44,14 +46,8 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 			0.9,
 		)
 
-		fmt.Println(parent.GetAllocatedWidth(),
-			parent.GetAllocatedHeight(),
-			s.ImagePixbuf.GetWidth(),
-			s.ImagePixbuf.GetHeight())
-		fmt.Println(w, h)
-
-		pixbuf, err := s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_BILINEAR)
-		utils.PanicIfErr(err)
+		pixbuf, err := s.ImagePixbuf.ScaleSimple(w, h, gdk.INTERP_HYPER)
+		utils.PanicIfErr(err, "error scaling pixbuf")
 
 		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
 		utils.PanicIfErr(err)

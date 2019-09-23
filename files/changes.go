@@ -63,8 +63,6 @@ func GetReverseChangeCommands(c Change) []ChangeCommand {
 	return commands
 }
 
-var changes = []Change{}
-
 func ExecuteChangeCommands(ccs []ChangeCommand) {
 	createParentFolder := func(filePath string) {
 		// Get parent folder
@@ -73,7 +71,8 @@ func ExecuteChangeCommands(ccs []ChangeCommand) {
 		// Create only if it doesn't exist
 		_, err := os.Stat(dir)
 		if os.IsNotExist(err) {
-			os.MkdirAll(dir, os.ModePerm)
+			err := os.MkdirAll(dir, os.ModePerm)
+			utils.PanicIfErr(err)
 		}
 	}
 

@@ -4,8 +4,8 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
-	"io/ioutil"
 
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -54,7 +54,7 @@ func isValidExtension(path string) bool {
 	return false
 }
 
-func LoadFile(path string, box *packr.Box) ([]byte, error) {
+func LoadFile(path string, box *packr.Box) (http.File, error) {
 	var file http.File
 	var err error
 
@@ -66,13 +66,7 @@ func LoadFile(path string, box *packr.Box) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
+	return file, nil
 }
 
 func LoadImage(path string, box *packr.Box) (image.Image, error) {
@@ -84,12 +78,11 @@ func LoadImage(path string, box *packr.Box) (image.Image, error) {
 	} else {
 		file, err = box.Open(path)
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
 	defer file.Close()
+
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return nil, err
@@ -98,16 +91,36 @@ func LoadImage(path string, box *packr.Box) (image.Image, error) {
 }
 
 func PixbufFromFile(path string, box *packr.Box) (*gdk.Pixbuf, error) {
-
-	//     loader = gdk_pixbuf_loader_new ();
-	//     gdk_pixbuf_loader_write (loader, buffer, length, NULL);
-	//     pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
-
-	loader, _ := gdk.PixbufLoaderNew()
-
-	b, err := LoadFile(path, box)
+	// Create loader
+	loader, err := gdk.PixbufLoaderNew()
 	if err != nil {
 		return nil, err
 	}
-	return loader.WriteAndReturnPixbuf(b)
+
+	// Load file
+	file, err := LoadFile(path, box)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Copy from file to loader
+	_, err = io.Copy(loader, file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Close loader
+	err = loader.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get pixbuf from loader
+	pixbuf, err := loader.GetPixbuf()
+	if err != nil {
+		return nil, err
+	}
+
+	return pixbuf, nil
 }

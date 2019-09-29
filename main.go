@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	Title  = "pickture"
-	MaxFPS = 30
+	Title = "pickture"
 )
 
 func main() {

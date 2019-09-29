@@ -1,0 +1,13 @@
+window > box {
+  padding: 10px;
+}
+
+frame > label {
+	font-size: 20px;
+	font-weight: bold;
+	padding: 5px;
+}
+
+frame > box {
+	padding: 10px;
+}

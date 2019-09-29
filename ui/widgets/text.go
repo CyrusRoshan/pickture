@@ -12,19 +12,31 @@ type ImageInfoHolderState struct {
 	Index int
 	Count int
 	Name  string
+	Path  string
 }
 
 func ImageInfoHolderWidget() *UpdaterWidget {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	utils.PanicIfErr(err)
 
-	countLabel, err := gtk.LabelNew(DefaultText)
-	utils.PanicIfErr(err)
-	box.Add(countLabel)
+	newLabel := func() *gtk.Label {
+		label, err := gtk.LabelNew(DefaultText)
+		utils.PanicIfErr(err)
+		label.SetWidthChars(30)
+		label.SetMaxWidthChars(30)
+		label.SetLineWrap(true)
 
-	nameLabel, err := gtk.LabelNew(DefaultText)
+		box.Add(label)
+		return label
+	}
+
+	imageCountLabel := newLabel()
+	imagePathLabel := newLabel()
+	// current image metadata (day/time)
+	// current image metadata camera, lens info
+	progressBar, err := gtk.ProgressBarNew()
 	utils.PanicIfErr(err)
-	box.Add(nameLabel)
+	box.Add(progressBar)
 
 	gtkWidget := &box.Container.Widget
 
@@ -37,15 +49,25 @@ func ImageInfoHolderWidget() *UpdaterWidget {
 
 		var countText string
 		if s.Index >= s.Count {
-			countText = "No images left!"
+			countText = fmt.Sprintf(
+				"Images: (%d/%d)",
+				s.Count,
+				s.Count,
+			)
 		} else {
-			countText = fmt.Sprintf("Images: (%d/%d)", s.Index+1, s.Count)
+			countText = fmt.Sprintf(
+				"Images: (%d/%d)",
+				s.Index+1,
+				s.Count,
+			)
 		}
-		_, err := glib.IdleAdd(countLabel.SetText, countText)
+		_, err := glib.IdleAdd(imageCountLabel.SetText, countText)
 		utils.PanicIfErr(err)
 
-		_, err = glib.IdleAdd(nameLabel.SetText, fmt.Sprintf("Name: (%s)", s.Name))
+		_, err = glib.IdleAdd(imagePathLabel.SetText, fmt.Sprintf("Path: %s", s.Path))
 		utils.PanicIfErr(err)
+
+		progressBar.SetFraction(float64(s.Index) / float64(s.Count))
 	}
 	updaterWidget := NewUpdaterWidget(gtkWidget, updateFunc)
 	return &updaterWidget

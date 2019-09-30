@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/CyrusRoshan/pickture/utils"
+	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -20,54 +21,37 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 	frame.SetHExpand(true)
 	frame.SetVExpand(true)
 
-	img, err := gtk.ImageNew()
+	drawing, err := gtk.DrawingAreaNew()
 	utils.PanicIfErr(err)
-	img.SetHExpand(true)
-	img.SetVExpand(true)
-	frame.Add(img)
+	frame.Add(drawing)
 
 	gtkWidget := &frame.Container.Widget
 
-	var renderNewPixbuf = func(pixbuf *gdk.Pixbuf) error {
-		if pixbuf != nil {
-			w, h := scaleImage(
-				parent.GetAllocatedWidth(),
-				parent.GetAllocatedHeight(),
-				pixbuf.GetWidth(),
-				pixbuf.GetHeight(),
-				0.9,
-			)
+	var resizeImage = func(pixbuf *gdk.Pixbuf, maxWidth, maxHeight int) (*gdk.Pixbuf, int, int) {
+		width, height := scaleImage(
+			maxWidth,
+			maxHeight,
+			pixbuf.GetWidth(),
+			pixbuf.GetHeight(),
+			1,
+		)
 
-			pixbuf, err = pixbuf.ScaleSimple(w, h, gdk.INTERP_TILES)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = glib.IdleAdd(img.SetFromPixbuf, pixbuf)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	oldPWidth := parent.GetAllocatedWidth()
-	oldPHeight := parent.GetAllocatedHeight()
-	var resizeImage = func(pixbuf *gdk.Pixbuf) {
-		// Check if we need to resize
-		pWidth := parent.GetAllocatedWidth()
-		pHeight := parent.GetAllocatedHeight()
-		if pWidth == oldPWidth && pHeight == oldPHeight {
-			return
-		}
-		oldPWidth, oldPHeight = pWidth, pHeight
-
-		err := renderNewPixbuf(pixbuf)
-		utils.PanicIfErr(err, "error rendering pixbuf")
+		pixbuf, err = pixbuf.ScaleSimple(width, height, gdk.INTERP_TILES)
+		utils.PanicIfErr(err, "error resizing pixbuf")
+		return pixbuf, maxWidth - width, maxHeight - height
 	}
 
 	var lastPixbuf *gdk.Pixbuf
-	img.Connect("draw", func() { resizeImage(lastPixbuf) })
+	drawing.Connect("draw", func(da *gtk.DrawingArea, cr *cairo.Context) {
+		height := da.GetAllocatedHeight()
+		width := da.GetAllocatedWidth()
+		pixbuf, wdiff, hdiff := resizeImage(lastPixbuf, width, height)
+
+		cr.Rectangle(0, 0, float64(width), float64(height))
+		gtk.GdkCairoSetSourcePixBuf(cr, pixbuf,
+			float64(wdiff/2), float64(hdiff/2))
+		cr.Fill()
+	})
 
 	// Add update func, which can access the pointers we just created
 	var updateFunc = func(state interface{}) {
@@ -76,11 +60,8 @@ func TitledImageHolderWidget(parent *gtk.Widget) *UpdaterWidget {
 			panic("Error converting state from interface")
 		}
 
-		// Sorry this is basically state abuse
 		lastPixbuf = s.ImagePixbuf
-
-		err := renderNewPixbuf(s.ImagePixbuf)
-		utils.PanicIfErr(err, "error rendering pixbuf")
+		drawing.QueueDraw()
 
 		_, err = glib.IdleAdd(frame.SetLabel, s.Title)
 		utils.PanicIfErr(err)

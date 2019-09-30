@@ -69,16 +69,21 @@ func Root(window *gtk.Window) (rootWidget *gtk.Widget, onUpdate func()) {
 			imagePath = currFile.Path
 		}
 
+		currentImage := logic.State.GetCurrentImage()
+		if currentImage == nil {
+			currentImage = &logic.ImageData{}
+		}
 		imageHolder.Update(widgets.TitledImageHolderState{
 			Title:       imageName,
-			ImagePixbuf: logic.State.GetCurrentImage(),
+			ImagePixbuf: currentImage.Pixbuf,
 		})
 
 		imageInfo.Update(widgets.ImageInfoHolderState{
-			Index: logic.State.GetCurrentImageIndex(),
-			Count: logic.State.GetImageCount(),
-			Name:  imageName,
-			Path:  imagePath,
+			Index:    logic.State.GetCurrentImageIndex(),
+			Count:    logic.State.GetImageCount(),
+			Name:     imageName,
+			Path:     imagePath,
+			ExifData: currentImage.ExifData,
 		})
 	}
 

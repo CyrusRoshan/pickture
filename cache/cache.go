@@ -2,14 +2,12 @@ package cache
 
 import (
 	"sync"
-
-	"github.com/gotk3/gotk3/gdk"
 )
 
 // FileArrayCache uses an array structure for O[1] indexing.
 // This requires knowing the size of the cache beforehand.
 type FileArrayCache struct {
-	items []*gdk.Pixbuf
+	items []interface{}
 	locks []sync.Mutex
 
 	FileArrayCacheProps
@@ -18,7 +16,7 @@ type FileArrayCache struct {
 // We need an array of all of the paths as well as a lookup function to perform ETL.
 type FileArrayCacheProps struct {
 	Paths    []string
-	LoadFunc func(string) *gdk.Pixbuf
+	LoadFunc func(string) interface{}
 
 	// Number of files to preload ahead of i when calling Get(i)
 	PreloadCount int
@@ -27,7 +25,7 @@ type FileArrayCacheProps struct {
 func NewFileArrayCache(props FileArrayCacheProps) *FileArrayCache {
 	length := len(props.Paths)
 	cache := FileArrayCache{
-		items:               make([]*gdk.Pixbuf, length),
+		items:               make([]interface{}, length),
 		locks:               make([]sync.Mutex, length),
 		FileArrayCacheProps: props,
 	}
@@ -35,7 +33,7 @@ func NewFileArrayCache(props FileArrayCacheProps) *FileArrayCache {
 	return &cache
 }
 
-func (c *FileArrayCache) Get(i int) *gdk.Pixbuf {
+func (c *FileArrayCache) Get(i int) interface{} {
 	if c.outOfBounds(i) {
 		return nil
 	}

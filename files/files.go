@@ -4,6 +4,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
+	"log"
 
 	"io"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/gobuffalo/packr"
 	"github.com/gotk3/gotk3/gdk"
+	"github.com/rwcarlsen/goexif/exif"
+	"github.com/rwcarlsen/goexif/mknote"
 )
 
 type File struct {
@@ -124,4 +127,20 @@ func PixbufFromFile(path string, box *packr.Box) (*gdk.Pixbuf, error) {
 	}
 
 	return pixbuf, nil
+}
+
+func ExifDataFromFile(path string) *exif.Exif {
+	f, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Optionally register camera makenote data parsing - currently Nikon and
+	// Canon are supported.
+	exif.RegisterParsers(mknote.All...)
+
+	x, err := exif.Decode(f)
+	if err != nil {
+		x = nil
+	}
+	return x
 }

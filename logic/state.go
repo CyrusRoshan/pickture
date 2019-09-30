@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
+	"github.com/rwcarlsen/goexif/exif"
 
 	"github.com/CyrusRoshan/pickture/cache"
 
@@ -29,6 +30,11 @@ type state struct {
 	fileDataCache *cache.FileArrayCache
 }
 
+type ImageData struct {
+	Pixbuf   *gdk.Pixbuf
+	ExifData *exif.Exif
+}
+
 func (s *state) initialize() {
 	// Get all files
 	allFiles, err := files.ListFiles(props.InputPath)
@@ -42,10 +48,16 @@ func (s *state) initialize() {
 	}
 	s.fileDataCache = cache.NewFileArrayCache(cache.FileArrayCacheProps{
 		Paths: paths,
-		LoadFunc: func(path string) *gdk.Pixbuf {
+		LoadFunc: func(path string) interface{} {
 			pixbuf, err := files.PixbufFromFile(path, nil)
 			utils.PanicIfErr(err, "Error loading image for cache")
-			return pixbuf
+
+			exifData := files.ExifDataFromFile(path)
+
+			return ImageData{
+				Pixbuf:   pixbuf,
+				ExifData: exifData,
+			}
 		},
 		PreloadCount: 5,
 	})
@@ -80,12 +92,12 @@ func (s *state) GetCurrentFile() *files.File {
 }
 
 // GetCurrentFile used for displaying current file name
-func (s *state) GetCurrentImage() *gdk.Pixbuf {
+func (s *state) GetCurrentImage() *ImageData {
 	if s.fileIndex > len(s.files)-1 || s.fileIndex < 0 {
 		return nil
 	}
-	fileData := s.fileDataCache.Get(s.fileIndex)
-	return fileData
+	fileData := s.fileDataCache.Get(s.fileIndex).(ImageData)
+	return &fileData
 }
 
 func (s *state) resetFileUUID() {

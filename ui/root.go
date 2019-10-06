@@ -38,19 +38,13 @@ func Root(window *gtk.Window) (rootWidget *gtk.Widget, onUpdate func()) {
 		}
 	}
 
-	// info to have: ---
-	// total image count (curr/number)
-	// progress bar showing %done
-	// current image full path
-	// current image metadata (day/time)
-	// current image metadata camera, lens info
-	//
 	// binding info: ---
 	// q w e a s d nicknames
 	// q w e a s d image counts
 	// q w e a s d (show show last selection highlighted, show selected keys
 	// with border, useful for multi-select)
 	//
+	// TODO: add rename functionality
 	//
 	// Example: ----
 	// [ info   ] [ picture      ]

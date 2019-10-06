@@ -2,22 +2,16 @@ package ui
 
 import (
 	"io/ioutil"
-	"path/filepath"
 
+	"github.com/CyrusRoshan/pickture/assets"
 	"github.com/CyrusRoshan/pickture/utils"
-	"github.com/gobuffalo/packr"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
 func addCSS() {
-	// Create box
-	assetsPath, err := filepath.Abs("./assets/raw")
-	utils.PanicIfErr(err)
-	packBox := packr.NewBox(assetsPath)
-
 	// Read file
-	f, err := packBox.Open("example.css")
+	f, err := assets.RawAssetsBox.Open("example.css")
 	utils.PanicIfErr(err)
 	defer f.Close()
 	fBytes, err := ioutil.ReadAll(f)
